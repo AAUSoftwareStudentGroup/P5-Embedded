@@ -24,6 +24,7 @@ namespace DataHub.Models
     
         public int Id { get; set; }
         public string Created { get; set; }
+        public int IsActive { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TestDataSet> TestDataSet { get; set; }

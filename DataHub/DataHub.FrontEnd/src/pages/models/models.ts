@@ -32,4 +32,24 @@ export class Models {
           }
       )
     }
+
+    public deleteModel(model) {
+        this.service.deleteModel(model['Id']).then(
+            data => {
+                if(data['Success']) {
+                    this.models.splice(this.models.indexOf(model), 1);
+                }
+            }
+        )
+    }
+
+    public deleteModelType(modelType) {
+        this.service.deleteModelType(modelType['Id']).then(
+            data => {
+                if(data['Success']) {
+                    this.modelTypes.splice(this.modelTypes.indexOf(modelType), 1);
+                }
+            }
+        )
+    }
 }

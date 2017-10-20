@@ -15,9 +15,9 @@
         <div *ngIf="!loadingLabels" class="list" style="top: 55px;margin-top: 50px; bottom: 50%;">
             <div class="box">
                 <div *ngFor="let label of labels" class="pointer">
-                    <div class="datalist-row">
-                        <img  (click)="selectLabel(label)" *ngIf="test.LabelIds.indexOf(label.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
-                        <img  (click)="selectLabel(label)" *ngIf="test.LabelIds.indexOf(label.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+                    <div class="datalist-row" (click)="selectLabel(label)">
+                        <img *ngIf="test.LabelIds.indexOf(label.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
+                        <img *ngIf="test.LabelIds.indexOf(label.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
                         {{ label.Name }}
                     </div>
                 </div> 
@@ -36,16 +36,15 @@
             <div class="box">
                 <div *ngFor="let data of datalist" class="pointer">
                     <div class="datalist-row">
-                        
                         {{ data.Name }}
-                        <div style="float:right; margin-left: 20px;">
-                            <img  (click)="selectTrainingData(data)" *ngIf="test.TrainingDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
-                            <img  (click)="selectTrainingData(data)" *ngIf="test.TrainingDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+                        <div style="float:right; margin-left: 20px;" (click)="selectTrainingData(data)">
+                            <img *ngIf="test.TrainingDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
+                            <img *ngIf="test.TrainingDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
                             Train
                         </div>
-                        <div style="float:right">
-                            <img  (click)="selectTestData(data)" *ngIf="test.TestDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
-                            <img  (click)="selectTestData(data)" *ngIf="test.TestDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+                        <div style="float:right" (click)="selectTestData(data)">
+                            <img *ngIf="test.TestDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
+                            <img *ngIf="test.TestDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
                             Test
                         </div>
                     </div>

@@ -52,6 +52,30 @@ export class Service {
             });
     }
 
+    public deleteModel(id) {
+        return this.http.delete(this.API_URL + "/api/model/" + id)
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    public deleteModelType(id) {
+        return this.http.delete(this.API_URL + "/api/modeltype/" + id)
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    public deleteTest(id) {
+        return this.http.delete(this.API_URL + "/api/test/" + id)
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
     public deleteLabel(id) {
         return this.http.delete(this.API_URL + "/api/label/" + id)
             .toPromise()
@@ -134,6 +158,30 @@ export class Service {
 
     public fetchModelTypeProperties(id) {
         return this.http.get(this.API_URL + "/api/modeltype/" + id + "/property")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    public fetchModel(id) {
+        return this.http.get(this.API_URL + "/api/model/" + id)
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    public fetchModelType(id) {
+        return this.http.get(this.API_URL + "/api/modeltype/" + id)
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    public fetchModelParameters(id) {
+        return this.http.get(this.API_URL + "/api/model/" + id + "/parameters")
             .toPromise()
             .catch(error => {
                 console.debug('Error fetching accounts: ' + error.message);

@@ -47,6 +47,7 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="ModelTypeId" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="ModelType">
           <Key>
@@ -55,6 +56,7 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="CreatedDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="IsActive" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="Parameter">
           <Key>
@@ -80,6 +82,7 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Created" Type="nchar" MaxLength="10" />
+          <Property Name="IsActive" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="TestDataSet">
           <Key>
@@ -420,6 +423,7 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="ModelTypeId" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Int32" Nullable="false" />
           <NavigationProperty Name="ModelType" Relationship="Self.FK__Model__ModelType__5629CD9C" FromRole="Model" ToRole="ModelType" />
           <NavigationProperty Name="Parameter" Relationship="Self.FK__Parameter__Model__59063A47" FromRole="Model" ToRole="Parameter" />
           <NavigationProperty Name="TestResult" Relationship="Self.FK__TestResul__Model__00200768" FromRole="Model" ToRole="TestResult" />
@@ -431,6 +435,7 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="CreatedDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="IsActive" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Model" Relationship="Self.FK__Model__ModelType__5629CD9C" FromRole="ModelType" ToRole="Model" />
           <NavigationProperty Name="Property" Relationship="Self.FK__Property__settin__534D60F1" FromRole="ModelType" ToRole="Property" />
         </EntityType>
@@ -462,6 +467,7 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Created" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="IsActive" Type="Int32" Nullable="false" />
           <NavigationProperty Name="TestDataSet" Relationship="Self.FK__TestDataS__TestI__6383C8BA" FromRole="Test" ToRole="TestDataSet" />
           <NavigationProperty Name="TestLabel" Relationship="Self.FK__TestLabel__TestI__5FB337D6" FromRole="Test" ToRole="TestLabel" />
           <NavigationProperty Name="TestResult" Relationship="Self.FK__TestResul__TestI__6EF57B66" FromRole="Test" ToRole="TestResult" />
@@ -805,6 +811,7 @@
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="ModelTypeId" ColumnName="ModelTypeId" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -814,6 +821,7 @@
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -842,6 +850,7 @@
               <MappingFragment StoreEntitySet="Test">
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

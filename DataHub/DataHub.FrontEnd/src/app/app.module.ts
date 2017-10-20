@@ -30,7 +30,9 @@ export const routes: Routes = [
   { path: 'model', component: Models },
   { path: 'new', component: NewDataSet },
   { path: 'newmodel', component: NewModel },
+  { path: 'newmodel/:id', component: NewModel },
   { path: 'newmodeltype', component: NewModelType },
+  { path: 'newmodeltype/:id', component: NewModelType },
   { path: 'test', component: Test },
   { path: 'test/:id', component: TestResult },
   { path: 'newtest', component: NewTest }

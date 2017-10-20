@@ -95,14 +95,14 @@ namespace DataHub.Controllers
         public Response<Messages.DataSet> GetDataSetById(int? id)
         {
             if (id == null)
-                return new Response<Messages.DataSet>() { ErrorCode = ErrorCode.InvalidId };
+                return new ErrorResponse<Messages.DataSet>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.DataSet>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new ErrorResponse<Messages.DataSet>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 return new Response<Messages.DataSet>()
                 {
@@ -123,14 +123,24 @@ namespace DataHub.Controllers
         public Response DeleteDataSetById(int? id)
         {
             if (id == null)
-                return new Response<Messages.DataSet>() { ErrorCode = ErrorCode.InvalidId };
+                return new ErrorResponse<Messages.DataSet>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.DataSet>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new ErrorResponse<Messages.DataSet>() { ErrorCode = ErrorCode.DataSetNotFound };
+
+                if (dataSet.Classification.Count > 0 || dataSet.TestDataSet.Count > 0)
+                    return new ErrorResponse<Messages.DataSet> { ErrorCode = ErrorCode.DataSetInUse };
+
+                var mappings = dataSet.Mapping.ToArray();
+
+                foreach (var mapping in mappings)
+                {
+                    db.Mapping.Remove(mapping);
+                }
 
                 db.DataSet.Remove(dataSet);
                 db.SaveChanges();
@@ -156,14 +166,14 @@ namespace DataHub.Controllers
         public Response<Messages.Label> AddLabelToDataSet(int? id, Messages.Label label)
         {
             if (id == null)
-                return new Response<Messages.Label>() { ErrorCode = ErrorCode.InvalidId };
+                return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.Label>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 dataSet.Mapping.Add(new Mapping()
                 {
@@ -205,21 +215,24 @@ namespace DataHub.Controllers
         public Response<Messages.Label> DeleteLabelFromDataSet(int? id, int? labelId)
         {
             if (id == null || labelId == null)
-                return new Response<Messages.Label>() { ErrorCode = ErrorCode.InvalidId };
+                return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.Label>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 var mapping = dataSet.Mapping.FirstOrDefault(m => m.LabelId == labelId);
 
                 if (mapping == null)
-                    return new Response<Messages.Label>() { ErrorCode = ErrorCode.InvalidLabelId };
+                    return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.InvalidLabelId };
 
                 var label = db.Label.First(l => l.Id == mapping.LabelId);
+
+                if (dataSet.TestDataSet.Where(t => t.Test.TestLabel.Where(l => l.Id == label.Id).Count() > 0).Count() > 0)
+                    return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.LabelUsedInTests };
 
                 var map = db.Mapping.FirstOrDefault(m => m.Id == mapping.Id);
 
@@ -243,14 +256,14 @@ namespace DataHub.Controllers
         public Response<Messages.Label[]> GetLabelsForDataSet(int? id)
         {
             if (id == null)
-                return new Response<Messages.Label[]>() { ErrorCode = ErrorCode.InvalidId };
+                return new ErrorResponse<Messages.Label[]>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.Label[]>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new ErrorResponse<Messages.Label[]>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 var labels = dataSet.Mapping.Select(m => m.Label);
 
@@ -271,6 +284,9 @@ namespace DataHub.Controllers
         {
             using (Entities db = new Entities())
             {
+                if (db.Label.FirstOrDefault(m => m.Name == label.Name) != null)
+                    return new ErrorResponse<Messages.Label>() { ErrorCode = ErrorCode.NameAlreadyInUse };
+
                 var added = db.Label.Add(new Models.Label()
                 {
                     Name = label.Name

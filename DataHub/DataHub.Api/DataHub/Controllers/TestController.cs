@@ -17,7 +17,7 @@ namespace DataHub.Controllers
         [Route("api/test")]
         public Response<Messages.Test[]> GetAllTests()
         {
-            return new Response<Messages.Test[]>() { Data = new Entities().Test.Select(t => new Messages.Test()
+            return new Response<Messages.Test[]>() { Data = new Entities().Test.Where(t => t.IsActive == 1).Select(t => new Messages.Test()
             {
                 Id = t.Id,
                 LabelIds = t.TestLabel.Select(l => l.LabelId),
@@ -53,6 +53,7 @@ namespace DataHub.Controllers
         {
             var test = new Models.Test()
             {
+                IsActive = 1,
                 TestLabel = newTest.LabelIds.Select(l => new Models.TestLabel()
                 {
                     LabelId = l
@@ -163,23 +164,23 @@ namespace DataHub.Controllers
 
         [HttpGet]
         [Route("api/modeltype/{id}/test")]
-        public Response<TestInfo> GetTestForModelType(int? id)
+        public Response<TestInfo> GetTestForModelType(string id)
         {
             if (id == null)
                 return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
-                var modelType = db.ModelType.FirstOrDefault(m => m.Id == id);
+                var modelType = db.ModelType.Where(m => m.IsActive == 1).FirstOrDefault(m => m.Id.ToString() == id || m.Name == id);
                 if (modelType == null)
                     return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
 
-                var model = modelType.Model.OrderBy(t => t.TestResult.Count).FirstOrDefault();
+                var model = modelType.Model.Where(m => m.IsActive == 1).OrderBy(t => t.TestResult.Count).FirstOrDefault();
 
                 if (model == null)
                     return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
 
-                var test = db.Test.OrderBy(t => t.TestResult.Where(r => r.ModelId == model.Id).Count()).FirstOrDefault();
+                var test = db.Test.Where(t => t.IsActive == 1).OrderBy(t => t.TestResult.Where(r => r.ModelId == model.Id).Count()).FirstOrDefault();
 
                 if (test == null)
                     return new Response<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
@@ -224,9 +225,24 @@ namespace DataHub.Controllers
 
         [HttpDelete]
         [Route("api/test/{id}")]
-        public Response DeleteTest(int id)
+        public Response DeleteTest(int? id)
         {
-            return new Response();
+            if (id == null)
+                return new ErrorResponse<Messages.Test>() { ErrorCode = ErrorCode.InvalidId };
+
+            using (Entities db = new Entities())
+            {
+                var test = db.Test.FirstOrDefault(t => t.Id == id);
+
+                if (test == null)
+                    return new ErrorResponse<Messages.Test>() { ErrorCode = ErrorCode.TestNotFound };
+
+                test.IsActive = 0;
+
+                db.SaveChanges();
+
+                return GetTest(id);
+            }
         }
     }
 }

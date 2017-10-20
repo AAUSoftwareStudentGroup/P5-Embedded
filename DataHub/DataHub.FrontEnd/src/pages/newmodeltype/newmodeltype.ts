@@ -41,7 +41,18 @@ export class NewModelType {
     }
 
     ngOnInit() {
-      
+      this.route.params.subscribe(
+            params => {
+                if(params['id'] != null) {
+                    this.service.fetchModelType(params['id']).then(
+                        modelTypeData => {
+                            if(modelTypeData['Success']) {
+                                console.log(modelTypeData);
+                                this.modelType = modelTypeData['Data'];
+                            }
+                        }
+                    )
+                }
+            });
     }
-
 }

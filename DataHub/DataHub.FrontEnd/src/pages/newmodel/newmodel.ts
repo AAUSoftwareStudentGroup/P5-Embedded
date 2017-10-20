@@ -21,6 +21,29 @@ export class NewModel {
 
     public modelTypes = [];
 
+    ngOnInit() {
+        this.route.params.subscribe(
+            params => {
+            this.service.fetchModelTypes().then(
+                data => {
+                    if(data['Success']) {
+                        this.modelTypes = data['Data'];
+                        if(params['id'] != null) {
+                            this.service.fetchModel(params['id']).then(
+                                modelData => {
+                                    if(modelData['Success']) {
+                                        console.log(modelData);
+                                        this.model = modelData['Data'];
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            )
+        });
+    }
+
     public typeChanged(id) {
         this.model.TypeId = id;
         this.model.Parameters = [];
@@ -50,14 +73,7 @@ export class NewModel {
         )
     }
 
-    ngOnInit() {
-      this.service.fetchModelTypes().then(
-          data => {
-              if(data['Success'])
-                this.modelTypes = data['Data'];
-          }
-      )
-    }
+   
 
 
     

@@ -17,7 +17,7 @@ namespace DataHub.Controllers
         [Route("api/model")]
         public Response<Messages.Model[]> GetAllModels()
         {
-            return new Response<Messages.Model[]>() { Data = new Entities().Model.Select(m => new Messages.Model() { Id = m.Id, Name = m.Name, TypeName = m.ModelType.Name }).ToArray() };
+            return new Response<Messages.Model[]>() { Data = new Entities().Model.Where(m => m.IsActive == 1).Select(m => new Messages.Model() { Id = m.Id, Name = m.Name, TypeName = m.ModelType.Name }).ToArray() };
         }
 
         [HttpGet]
@@ -32,11 +32,23 @@ namespace DataHub.Controllers
                 var model = db.Model.FirstOrDefault(m => m.Id == id);
 
                 if (model == null)
-                    return new Response<Messages.Model>() { ErrorCode = ErrorCode.InvalidId };
+                    return new ErrorResponse<Messages.Model>() { ErrorCode = ErrorCode.InvalidId };
 
                 return new Response<Messages.Model>()
                 {
-                    Data = new Messages.Model() { Id = model.Id, Name = model.Name, TypeName = model.ModelType.Name }
+                    Data = new Messages.Model() {
+                        Id = model.Id,
+                        Name = model.Name,
+                        TypeName = model.ModelType.Name,
+                        TypeId = model.ModelTypeId,
+                        Parameters = model.Parameter.Select(p => new Messages.Parameter()
+                        {
+                            Id = p.Id,
+                            Name = p.Property.Name,
+                            Type = p.Property.Type,
+                            Value = p.Value
+                        }).ToArray()
+                    }
                 };
             }
         }
@@ -45,7 +57,7 @@ namespace DataHub.Controllers
         [Route("api/modeltype")]
         public Response<Messages.ModelType[]> GetAllModelTypes()
         {
-            return new Response<Messages.ModelType[]>() { Data = new Entities().ModelType.Select(m => new Messages.ModelType() { Id = m.Id, Name = m.Name }).ToArray() };
+            return new Response<Messages.ModelType[]>() { Data = new Entities().ModelType.Where(m => m.IsActive == 1).Select(m => new Messages.ModelType() { Id = m.Id, Name = m.Name }).ToArray() };
         }
 
         [HttpGet]
@@ -60,11 +72,21 @@ namespace DataHub.Controllers
                 var model = db.ModelType.FirstOrDefault(m => m.Id == id);
 
                 if (model == null)
-                    return new Response<Messages.ModelType>() { ErrorCode = ErrorCode.InvalidId };
+                    return new ErrorResponse<Messages.ModelType>() { ErrorCode = ErrorCode.InvalidId };
 
                 return new Response<Messages.ModelType>()
                 {
-                    Data = new Messages.ModelType() { Id = model.Id, Name = model.Name }
+                    Data = new Messages.ModelType()
+                    {
+                        Id = model.Id,
+                        Name = model.Name,
+                        Properties = model.Property.Select(P => new Messages.Property()
+                        {
+                            Id = P.Id,
+                            Name = P.Name,
+                            Type = P.Type
+                        }).ToArray()
+                    }
                 };
             }
         }
@@ -81,7 +103,7 @@ namespace DataHub.Controllers
                 var model = db.Model.FirstOrDefault(m => m.Id == id);
 
                 if (model == null)
-                    return new Response<Messages.Parameter[]>() { ErrorCode = ErrorCode.InvalidId };
+                    return new ErrorResponse<Messages.Parameter[]>() { ErrorCode = ErrorCode.InvalidId };
 
                 return new Response<Messages.Parameter[]>()
                 {
@@ -108,7 +130,7 @@ namespace DataHub.Controllers
                 var model = db.ModelType.FirstOrDefault(m => m.Id == id);
 
                 if (model == null)
-                    return new Response<Messages.Property[]>() { ErrorCode = ErrorCode.InvalidId };
+                    return new ErrorResponse<Messages.Property[]>() { ErrorCode = ErrorCode.InvalidId };
 
                 return new Response<Messages.Property[]>()
                 {
@@ -128,10 +150,14 @@ namespace DataHub.Controllers
         {
             using (Entities db = new Entities())
             {
+                if (db.Model.FirstOrDefault(m => m.Name == newModel.Name) != null)
+                    return new ErrorResponse<Messages.Model>() { ErrorCode = ErrorCode.NameAlreadyInUse };
+
                 var added = db.Model.Add(new Models.Model()
                 {
                     ModelTypeId = newModel.TypeId,
                     Name = newModel.Name,
+                    IsActive = 1,
                     Parameter = newModel.Parameters.Select(p => new Models.Parameter()
                     {
                         PropertyId = p.PropertyId,
@@ -151,10 +177,14 @@ namespace DataHub.Controllers
         {
             using (Entities db = new Entities())
             {
+                if (db.ModelType.FirstOrDefault(m => m.Name == newModel.Name) != null)
+                    return new ErrorResponse<Messages.ModelType>() { ErrorCode = ErrorCode.NameAlreadyInUse };
+
                 var added = db.ModelType.Add(new Models.ModelType()
                 {
                     CreatedDate = DateTime.Now,
                     Name = newModel.Name,
+                    IsActive = 1,
                     Property = newModel.Properties.Select(p => new Models.Property()
                     {
                         Name = p.Name,
@@ -169,16 +199,46 @@ namespace DataHub.Controllers
 
         [HttpDelete]
         [Route("api/model/{id}")]
-        public Response DeleteModel()
+        public Response<Messages.Model> DeleteModel(int? id)
         {
-            return new ErrorResponse();
+            if (id == null)
+                return new ErrorResponse<Messages.Model>() { ErrorCode = ErrorCode.InvalidId };
+
+            using (Entities db = new Entities())
+            {
+                var model = db.Model.FirstOrDefault(t => t.Id == id);
+
+                if (model == null)
+                    return new ErrorResponse<Messages.Model>() { ErrorCode = ErrorCode.TestNotFound };
+
+                model.IsActive = 0;
+
+                db.SaveChanges();
+
+                return GetModelById(id);
+            }
         }
 
         [HttpDelete]
         [Route("api/modeltype/{id}")]
-        public Response DeleteModelType()
+        public Response<Messages.ModelType> DeleteModelType(int? id)
         {
-            return new ErrorResponse();
+            if (id == null)
+                return new ErrorResponse<Messages.ModelType>() { ErrorCode = ErrorCode.InvalidId };
+
+            using (Entities db = new Entities())
+            {
+                var model = db.ModelType.FirstOrDefault(t => t.Id == id);
+
+                if (model == null)
+                    return new ErrorResponse<Messages.ModelType>() { ErrorCode = ErrorCode.TestNotFound };
+
+                model.IsActive = 0;
+
+                db.SaveChanges();
+
+                return GetModelTypeById(id);
+            }
         }
     }
 }

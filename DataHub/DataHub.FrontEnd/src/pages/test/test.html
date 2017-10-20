@@ -9,24 +9,26 @@
         <div style="top: 60px;" class="separator-upper"></div>
         <div class="list">
             <div class="box">
-                <div *ngFor="let test of tests" [routerLink]="['/test', test.Id]">
+                <div *ngFor="let test of tests">
                     <div class="datalist-row">
-                    <div style="display: inline-block; cursor: pointer; width:10%;word-break:keep-all;">
-                    {{ test.LabelIds.length }} labels
-                    </div>
-                    <div style="display: inline-block; cursor: pointer; width:10%;">
-                    {{ test.TrainingSetIds.length }} train sets
-                    </div>
-                    <div style="display: inline-block; cursor: pointer; width:10%;">
-                    {{ test.TestSetIds.length }} test sets
-                    </div>
-                    <div style="display: inline-block; cursor: pointer; width:10%;">
-                    {{ test.ResultIds.length }} results
-                    </div>
-                    <div style="display: inline-block; cursor: pointer; width:10%;">
-                    {{ test.Status }}
-                    </div>
-                    <img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteTest(dataset)">
+                        <div style="margin-right: 50px;display: inline" [routerLink]="['/test', test.Id]">
+                            <div style="display: inline-block; cursor: pointer; width:10%;word-break:keep-all;">
+                            {{ test.LabelIds.length }} labels
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.TrainingSetIds.length }} train sets
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.TestSetIds.length }} test sets
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.ResultIds.length }} results
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.Status }}
+                            </div>
+                        </div>
+                        <img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteTest(test)">
                     </div>
                 </div>
             </div>

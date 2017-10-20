@@ -12,7 +12,10 @@
             <div class="box" style="margin: 0px;">
                 <div *ngFor="let modelType of modelTypes" class="pointer">
                     <div class="datalist-row">
+						<div style="display:inline-block;width:40%" [routerLink]="['/newmodeltype', modelType.Id]">
 						{{ modelType.Name }}
+						</div>
+						<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteModelType(modelType)">
 						<!--<div style="float: right;">{{ dataset.MeasuredDate | date:'medium' }}</div>-->
                     </div>
                 </div>
@@ -32,8 +35,9 @@
             <div class="box" style="margin: 0px;">
                 <div *ngFor="let model of models" class="pointer">
                     <div class="datalist-row">
-						<div style="display:inline-block;width:40%">{{ model.Name }}</div>
-						<div style="display:inline-block;width:40%">{{ model.TypeName }}</div>
+						<div style="display:inline-block;width:40%" [routerLink]="['/newmodel', model.Id]">{{ model.Name }}</div>
+						<div style="display:inline-block;width:40%" [routerLink]="['/newmodel', model.Id]">{{ model.TypeName }}</div>
+						<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteModel(model)">
                     </div>
                 </div>
             </div>

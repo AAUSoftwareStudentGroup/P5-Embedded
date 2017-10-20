@@ -16,7 +16,7 @@ private currentPath = "/data";
           if(event instanceof NavigationEnd)
             if(event.url == '/' || event.url.indexOf('dataset') != -1)
               this.currentPath = "/data";
-            else if(event.url == '/newmodel' || event.url == '/newmodeltype')
+            else if(event.url.indexOf('newmodel') != -1 || event.url.indexOf('newmodeltype') != -1)
               this.currentPath = '/model';
             else if(event.url == "/newtest" || event.url == "/testresult" || event.url.indexOf('test') != -1)
               this.currentPath = "/test";

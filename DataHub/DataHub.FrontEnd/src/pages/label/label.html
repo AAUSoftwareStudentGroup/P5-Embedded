@@ -39,7 +39,9 @@
 						<div class="datalist-row">
 							<img  (click)="selectLabel(label)" *ngIf="selectedLabels.indexOf(label) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
 							<img  (click)="selectLabel(label)" *ngIf="selectedLabels.indexOf(label) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+							<div style="display:inline-block;width:40%" (click)="selectLabel(label)">
 							{{ label.Name }}
+							</div>
 							<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteLabel(label)">
 						</div>
 					</div> 

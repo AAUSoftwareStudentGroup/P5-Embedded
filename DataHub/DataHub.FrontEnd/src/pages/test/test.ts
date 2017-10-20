@@ -26,4 +26,14 @@ export class Test {
           }
       );
     }
+
+    public deleteTest(test) {
+        this.service.deleteTest(test['Id']).then(
+            data => {
+                if(data['Success']) {
+                    this.tests.splice(this.tests.indexOf(test), 1);
+                }
+            }
+        );
+    }
 }
