@@ -1,11 +1,13 @@
 import socket, sys, os
-if os.path.exists(sys.argv[2]+".csv") and os.path.getsize(sys.argv[2]+".csv") > 0:
-    print "\nWARNING: Outputfile " + sys.argv[2] + ".csv exists and is not empty. Aborting...\n"
+if os.path.exists(sys.argv[1]+".csv") and os.path.getsize(sys.argv[1]+".csv") > 0:
+    print "\nWARNING: Outputfile " + sys.argv[1] + ".csv exists and is not empty. Aborting...\n"
     exit()
 
 try:
+    receivedData = True
     HOST = ''   # Symbolic name, meaning all available interfaces
-    PORT = 8085 # Arbitrary non-privileged port
+    PORT = int(sys.argv[3]) # Arbitrary non-privileged port
+    tick = 0
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     print 'Socket created'
@@ -19,47 +21,46 @@ try:
 
     print "Bind success, listening on port {}".format(PORT)
 
-    s.sendto("GO", (str(sys.argv[1]), 8085))
-    file = open(str(sys.argv[2])+".csv", "w")
+    s.sendto("", (str(sys.argv[2]), 8085))
+    file = open(str(sys.argv[1])+".csv", "w")
     file.write("time;x;y;z;rx;ry;rz\n")
     receivedData = False
-    print "Opened outputfile: " + str(sys.argv[2]) + ".csv"
+    print "Opened outputfile: " + str(sys.argv[1]) + ".csv"
     sys.stdout.write("Receiving data\n")
     totalTime = 0
     while 1:
         rawdata = s.recvfrom(13)
         receivedData = True
-        while rawdata == "":
-            #conn, addr = s.accept()
-            print "reconnected to {}".format(addr)
-            #rawdata = conn.recv(100*7*16)
-        data2 = []
-        data2.append(ord(rawdata[0][0]))
+        d = []
+        d.append(ord(rawdata[0][0]))
 
-        data2.append(ord(rawdata[0][1])<<8|ord(rawdata[0][2]))
-        data2.append(ord(rawdata[0][3])<<8|ord(rawdata[0][4]))
-        data2.append(ord(rawdata[0][5])<<8|ord(rawdata[0][6]))
+        d.append(ord(rawdata[0][1])<<8|ord(rawdata[0][2]))
+        d.append(ord(rawdata[0][3])<<8|ord(rawdata[0][4]))
+        d.append(ord(rawdata[0][5])<<8|ord(rawdata[0][6]))
 
-        data2.append(ord(rawdata[0][7])<<8|ord(rawdata[0][8]))
-        data2.append(ord(rawdata[0][9])<<8|ord(rawdata[0][10]))
-        data2.append(ord(rawdata[0][11])<<8|ord(rawdata[0][12]))
+        d.append(ord(rawdata[0][7])<<8|ord(rawdata[0][8]))
+        d.append(ord(rawdata[0][9])<<8|ord(rawdata[0][10]))
+        d.append(ord(rawdata[0][11])<<8|ord(rawdata[0][12]))
         
-        for i in range(1,len(data2)):
-            if(data2[i] & 1<<15):
-                data2[i] -= 1<<16
+        for i in range(1,len(d)):
+            if(d[i] & 1<<15):
+                d[i] -= 1<<16
 
-        print data2
+        #print d
 
-        for i in range(0, len(data2)/7):
+        for i in range(0, len(d)/7):
             j = i*7
-            totalTime += data2[j]
-            file.write("{};{};{};{};{};{};{}\n".format(totalTime, data2[j+(0+1)], data2[j+(1+1)], data2[j+(2+1)], data2[j+(3+1)], data2[j+(4+1)], data2[j+(5+1)]))
+            totalTime += d[j]
+            file.write("{};{};{};{};{};{};{}\n".format(totalTime, d[j+(0+1)], d[j+(1+1)], d[j+(2+1)], d[j+(3+1)], d[j+(4+1)], d[j+(5+1)]))
         #sys.stdout.write('.')
-        sys.stdout.flush()
+        #sys.stdout.flush()
+        tick = tick + 1
+        if tick % 5 == 0:
+            s.sendto("1", (str(sys.argv[2]), 8085))
 
 finally:
     print "\nClosing"
     s.close()
     if receivedData == False:
-        os.remove(sys.argv[2] + ".csv")
+        os.remove(sys.argv[1] + ".csv")
         print "Deleting empty outputfile since no data was captured"
