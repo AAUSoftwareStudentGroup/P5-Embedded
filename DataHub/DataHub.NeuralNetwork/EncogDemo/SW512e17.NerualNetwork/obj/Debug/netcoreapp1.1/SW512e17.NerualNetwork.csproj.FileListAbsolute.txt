@@ -1,8 +1,0 @@
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\bin\Debug\netcoreapp1.1\SW512e17.NerualNetwork.deps.json
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\bin\Debug\netcoreapp1.1\SW512e17.NerualNetwork.dll
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\bin\Debug\netcoreapp1.1\SW512e17.NerualNetwork.pdb
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\obj\Debug\netcoreapp1.1\SW512e17.NerualNetwork.csprojResolveAssemblyReference.cache
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\obj\Debug\netcoreapp1.1\SW512e17.NerualNetwork.csproj.CoreCompileInputs.cache
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\obj\Debug\netcoreapp1.1\SW512e17.NerualNetwork.AssemblyInfo.cs
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\obj\Debug\netcoreapp1.1\SW512e17.NerualNetwork.dll
-c:\users\morte\documents\visual studio 2017\Projects\EncogDemo\SW512e17.NerualNetwork\obj\Debug\netcoreapp1.1\SW512e17.NerualNetwork.pdb
