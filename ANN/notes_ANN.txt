@@ -1,5 +1,0 @@
-The ANN used and trained with KMEANS takes several minutes to train this is due to high number of Kmeans clustering that is trained.
-Furthermore the prediction accuracy is not the greatest and the result various depending on which subsets of the matches is trained and how the data is grouped by KMEANS.
-
-
-
