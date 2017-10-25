@@ -363,6 +363,10 @@ namespace DataHub.Controllers
             }
         }
 
+        // move grouping from DataHub.Client to here, so this method returns something that is relevant to ShotIdentifier
+        // næste opgave er at lave en ny client, som sender random svar tilbage. Lige nu modtager den en liste af data, i stedet skal den modtage antal predictions (mellem 0-1), hvor clienten for hver person, producerer et tal mellem 0-1
+        // lige nu hentes data ned fra clienten gennem APIet i databasen. Lige nu sendes det som TestInfo med alt data i TrainData (methodType/{id}/test), i stedet skal man kunne sige (methodType/{id}/test?cached=LISTEAFIP), hvor for hver IP skal data ikke sendes med, trods et TrainData-set stadig skal sendes med, hvor data=null.
+
         [HttpGet]
         [Route("api/dataset/{id}/data")]
         public Response<Messages.Data[]> GetDataByDataSetId(int? id)
