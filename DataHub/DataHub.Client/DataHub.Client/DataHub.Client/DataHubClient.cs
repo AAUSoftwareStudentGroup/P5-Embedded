@@ -27,7 +27,7 @@ namespace DataHub.Client
             ModelTypeID = modelName;
             client.BaseAddress = new Uri("http://p5datahub.azurewebsites.net");
         }
-
+            
         private TestInfo GetTestInfo()
         {
             var tests = client.GetAsync("/api/modeltype/"+ModelTypeID+"/test");
