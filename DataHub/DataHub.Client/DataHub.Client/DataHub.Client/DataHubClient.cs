@@ -35,11 +35,13 @@ namespace DataHub.Client
             Console.WriteLine("Sending request");
 
             string json = tests.Result.Content.ReadAsStringAsync().Result;
-            var tI = Newtonsoft.Json.JsonConvert.DeserializeObject<Response<TestInfo>>(json).Data;
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<Response<TestInfo>>(json);
 
             Console.WriteLine("Received request");
-
-            return tI;
+            if (response.Success)
+                return response.Data;
+            else
+                return null;
         }
 
         private TrainData IdentifyData(TestInfo testInfo)
@@ -109,6 +111,8 @@ namespace DataHub.Client
         public void Execute()
         {
             TestInfo testInfo = GetTestInfo();
+            if (testInfo == null)
+                return;
             TrainData trainData = IdentifyData(testInfo);
             TestResult result = Train(testInfo, trainData);
 
