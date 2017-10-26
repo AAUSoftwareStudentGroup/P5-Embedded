@@ -49,7 +49,7 @@ namespace DataHub.Controllers
 
         [HttpPost]
         [Route("api/test")]
-        public Response<Messages.Test> AddTest(Messages.NewTest newTest)
+        public Response<Messages.Test> AddTest(NewTest newTest)
         {
             var test = new Models.Test()
             {
@@ -206,12 +206,12 @@ namespace DataHub.Controllers
                         {
                             Id = t.DataSetId,
                             Name = t.DataSet.Name,
-                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data
+                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
                         }).ToArray(),
                         TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
                         {
                             Id = t.DataSetId,
-                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data,
+                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
                             Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
                             {
                                 Id = m.LabelId,
