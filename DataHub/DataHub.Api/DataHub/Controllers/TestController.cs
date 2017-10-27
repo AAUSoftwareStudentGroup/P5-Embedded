@@ -249,9 +249,10 @@ namespace DataHub.Controllers
         }
 
         [HttpGet]
-        [Route("api/modeltype/{id}/test/{cachedIds}")]
+        [Route("api/modeltype/{id}/test")]
         public Response<TestInfo> GetTestForModelType(string id, string cachedIds)
         {
+            cachedIds = cachedIds ?? "";
             if (id == null)
                 return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
 

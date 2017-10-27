@@ -22,6 +22,10 @@ namespace DataHub.Client
         public string ModelTypeID { get; set; }
         HttpClient client = new HttpClient();
 
+        private static Dictionary<int, TestDataSet> testData = new Dictionary<int, TestDataSet>();
+        private static Dictionary<int, DataLabelSet> trainData = new Dictionary<int, DataLabelSet>();
+
+
         public DataHubClient(string modelName)
         {
             ModelTypeID = modelName;
@@ -30,7 +34,7 @@ namespace DataHub.Client
             
         private TestInfo GetTestInfo()
         {
-            var tests = client.GetAsync("/api/modeltype/"+ModelTypeID+"/test");
+            var tests = client.GetAsync("/api/modeltype/"+ModelTypeID+"/test?cachedIds=" + string.Join(",", testData.Keys.Concat(trainData.Keys)));
 
             Console.WriteLine("Sending request");
 
@@ -39,7 +43,33 @@ namespace DataHub.Client
 
             Console.WriteLine("Received request");
             if (response.Success)
+            {
+                foreach (var set in response.Data.TestSet)
+                {
+                    if (set.Data == null)
+                    {
+                        if(testData.ContainsKey(set.Id))
+                            set.Data = testData[set.Id].Data;
+                        else
+                            set.Data = trainData[set.Id].Data;
+                    }
+                    else
+                        testData.Add(set.Id, set);
+                }
+                foreach (var set in response.Data.TrainingSet)
+                {
+                    if (set.Data == null)
+                    {
+                        if (testData.ContainsKey(set.Id))
+                            set.Data = testData[set.Id].Data;
+                        else
+                            set.Data = trainData[set.Id].Data;
+                    }
+                    else
+                        trainData.Add(set.Id, set);
+                }
                 return response.Data;
+            }
             else
                 return null;
         }
