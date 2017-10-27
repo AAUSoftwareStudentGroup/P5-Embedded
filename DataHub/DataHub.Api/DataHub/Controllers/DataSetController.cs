@@ -82,13 +82,11 @@ namespace DataHub.Controllers
 
                 return new Response<Messages.DataSet>() { Data = message, ErrorCode = ErrorCode.NoError };
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new ErrorResponse<Messages.DataSet>() { ErrorCode = ErrorCode.CouldNotReadFile };
             }
         }
-
-        
 
         [HttpGet]
         [Route("api/dataset/{id}")]
@@ -363,23 +361,32 @@ namespace DataHub.Controllers
             }
         }
 
+        // ______________________________________________________________________________________________________________________________________________________________________________________________________
+        //Opgave 1: mv Grouping from DH.Client to here, so GetDataByDataSetId returns List<Messages.Group> instead of Response<Messages.Data[]>. This needs the ShotIdentifier to group data. Findes herunder.
+        //Opgave 2: create new Client to send random results back (a random number between 0-1 for each person it guesses). This requires changes in the client, since it has to return probabilities instead of data. Findes i RandomClient i DataHub.Client
+        // ______________________________________________________________________________________________________________________________________________________________________________________________________
+
+        //Opgave 3: currently data gets to the client through an API-call to the database. It is sent as TestInfo with all data in TrainData (methodType/{id}/test). Instead one should e.g. call (methodType/{id}/test?cached=LIST) which should send empty data results for the cached objects, so they are not downloaded unnecessarily. The objects should still exist, just with datavariable=null.
+        // ______________________________________________________________________________________________________________________________________________________________________________________________________
+
+        // OPGAVE: når der trænes, skal der sendes en fil med, hør morten. 
         [HttpGet]
         [Route("api/dataset/{id}/data")]
-        public Response<Messages.Data[]> GetDataByDataSetId(int? id)
+        public Response<List<Group>> GetDataByDataSetId(int? id)
         {
             if (id == null)
-                return new Response<Messages.Data[]>() { ErrorCode = ErrorCode.InvalidId };
+                return new Response<List<Group>>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.Data[]>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new Response<List<Group>>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 try
                 {
-                    List<Messages.Data> data = new List<Data>();
+                    List<Data> data = new List<Data>();
                     double t, x, y, z, rx, ry, rz;
                     foreach (var line in File.ReadAllLines(dataSet.LocalFileName))
                     {
@@ -392,10 +399,10 @@ namespace DataHub.Controllers
                             && double.TryParse(split[5], out ry)
                             && double.TryParse(split[6], out rz))
                         {
-                            data.Add(new Messages.Data() { Time = t, X = x, Y = y, Z = z, RX = rx, RY = ry, RZ = rz });
+                            data.Add(new Data() { Time = t, X = x, Y = y, Z = z, RX = rx, RY = ry, RZ = rz });
                         }
                     }
-                    List<Messages.Data> downScaled = new List<Data>();
+                    List<Data> downScaled = new List<Data>();
                     t = 0; x = 0; y = 0; z = 0; rx = 0; ry = 0; rz = 0;
                     int c = 0;
                     int scale = 20;
@@ -411,17 +418,19 @@ namespace DataHub.Controllers
                         c++;
                         if (c == scale)
                         {
-                            downScaled.Add(new Messages.Data() { Time = t / scale, X = x / scale, Y = y / scale, Z = z / scale, RX = rx / scale, RY = ry / scale, RZ = rz / scale });
+                            downScaled.Add(new Data() { Time = t / scale, X = x / scale, Y = y / scale, Z = z / scale, RX = rx / scale, RY = ry / scale, RZ = rz / scale });
                             t = 0; x = 0; y = 0; z = 0; rx = 0; ry = 0; rz = 0;
                             c = 0;
                         }
                     }
 
-                    return new Response<Data[]>() { Data = downScaled.ToArray() };
+                    ShotIdentifier shotIdentifier = new ShotIdentifier();
+
+                    return new Response<List<Group>>() { Data = shotIdentifier.Identify(data) };
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    return new Response<Messages.Data[]>() { ErrorCode = ErrorCode.CouldNotReadData };
+                    return new Response<List<Group>>() { ErrorCode = ErrorCode.CouldNotReadData };
                 }
             }
         }
