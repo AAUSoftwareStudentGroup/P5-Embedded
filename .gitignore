@@ -5,3 +5,4 @@ venv/
 *.ide
 *.pkl
 *.json
+DataHub/DataHub.Api/DataHub/App_Data/ModelFiles/
