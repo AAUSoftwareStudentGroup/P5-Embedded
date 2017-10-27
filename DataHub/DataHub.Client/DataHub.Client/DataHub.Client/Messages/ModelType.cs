@@ -9,5 +9,6 @@ namespace DataHub.Messages
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public Messages.Property[] Properties { get; set; }
     }
 }

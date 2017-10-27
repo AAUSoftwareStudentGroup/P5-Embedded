@@ -108,8 +108,6 @@ namespace DataHub.Client.NeuralNetwork
 
             IMLTrain train = new ResilientPropagation(network, dataset);
 
-            ShotIdentifier shotIdentifier = new ShotIdentifier();
-
             Console.WriteLine("Training");
 
             int iterations = int.Parse(testInfo.Parameters.First(pa => pa.Name == "Train Iterations").Value);
@@ -129,20 +127,8 @@ namespace DataHub.Client.NeuralNetwork
             {
                 double[] confidence = new double[testInfo.Labels.Length];
                 int no = 0;
-                var data = testSet.Data.Select(d => new DataPoint()
+                foreach (var group in testSet.Data)
                 {
-                    Time = d.Time,
-                    RX = d.RX,
-                    RY = d.RY,
-                    RZ = d.RZ,
-                    X = d.X,
-                    Y = d.Y,
-                    Z = d.Z
-                }).ToArray();
-                var groups = shotIdentifier.Identify(data);
-                foreach (var group in groups)
-                {
-
                     if (group.Data.Length > 10)
                     {
                         List<double> input = new List<double>();

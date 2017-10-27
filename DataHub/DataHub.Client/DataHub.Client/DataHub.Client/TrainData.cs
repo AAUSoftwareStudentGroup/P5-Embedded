@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 
 namespace DataHub.Client
 {
-    public class TrainData : Dictionary<int, List<Group>> {   }
+    public class TrainData : Dictionary<int, List<Messages.Group>> {   }
 }

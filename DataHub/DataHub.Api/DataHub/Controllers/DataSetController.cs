@@ -426,7 +426,7 @@ namespace DataHub.Controllers
 
                     ShotIdentifier shotIdentifier = new ShotIdentifier();
 
-                    return new Response<List<Group>>() { Data = shotIdentifier.Identify(data) };
+                    return new Response<List<Group>>() { Data = shotIdentifier.Identify(downScaled) };
                 }
                 catch (Exception)
                 {

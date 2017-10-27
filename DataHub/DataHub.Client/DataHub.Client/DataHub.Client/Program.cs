@@ -12,7 +12,7 @@ namespace DataHub.Client
     {
         public static void Main(string[] args)
         {
-            DataHubClient client = new SVMClient();
+            DataHubClient client = new NNClient();
             while (true)
             {
                 client.Execute();

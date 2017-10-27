@@ -51,27 +51,15 @@ namespace DataHub.Client
 
             foreach (var label in testInfo.Labels)
             {
-                trainData.Add(label.Id, new List<Group>());
+                trainData.Add(label.Id, new List<Messages.Group>());
             }
 
-            var shotIdentifier = new ShotIdentifier();
 
             Console.WriteLine("Identifying");
 
             foreach (var trainSet in testInfo.TrainingSet)
             {
-                var data = trainSet.Data.Select(d => new DataPoint()
-                {
-                    Time = d.Time,
-                    RX = d.RX,
-                    RY = d.RY,
-                    RZ = d.RZ,
-                    X = d.X,
-                    Y = d.Y,
-                    Z = d.Z
-                }).ToArray();
-                var groups = shotIdentifier.Identify(data);
-                foreach (var group in groups)
+                foreach (var group in trainSet.Data)
                 {
                     foreach (var label in trainSet.Labels)
                     {

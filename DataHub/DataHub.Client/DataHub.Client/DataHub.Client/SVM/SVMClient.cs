@@ -80,8 +80,6 @@ namespace DataHub.Client.SVM
 
             IMLTrain train = new SVMSearchTrain(model, dataset);
 
-            ShotIdentifier shotIdentifier = new ShotIdentifier();
-
             Console.WriteLine("Training");
 
             int iterations = int.Parse(testInfo.Parameters.First(pa => pa.Name == "Train Iterations").Value);
@@ -101,18 +99,7 @@ namespace DataHub.Client.SVM
             {
                 double[] confidence = new double[testInfo.Labels.Length];
                 int no = 0;
-                var data = testSet.Data.Select(d => new DataPoint()
-                {
-                    Time = d.Time,
-                    RX = d.RX,
-                    RY = d.RY,
-                    RZ = d.RZ,
-                    X = d.X,
-                    Y = d.Y,
-                    Z = d.Z
-                }).ToArray();
-                var groups = shotIdentifier.Identify(data);
-                foreach (var group in groups)
+                foreach (var group in testSet.Data)
                 {
 
                     if (group.Data.Length > 10)

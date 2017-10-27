@@ -82,6 +82,8 @@
     <Compile Include="Messages\DataSetResult.cs" />
     <Compile Include="Messages\ErrorCode.cs" />
     <Compile Include="Messages\ErrorResponse.cs" />
+    <Compile Include="Messages\Group.cs" />
+    <Compile Include="Messages\IGroupIdentifier.cs" />
     <Compile Include="Messages\Label.cs" />
     <Compile Include="Messages\Model.cs" />
     <Compile Include="Messages\ModelType.cs" />
@@ -91,6 +93,7 @@
     <Compile Include="Messages\Parameter.cs" />
     <Compile Include="Messages\Property.cs" />
     <Compile Include="Messages\Response.cs" />
+    <Compile Include="Messages\ShotIdentifier.cs" />
     <Compile Include="Messages\Test.cs" />
     <Compile Include="Messages\TestDataSet.cs" />
     <Compile Include="Messages\TestInfo.cs" />

@@ -16,6 +16,11 @@ namespace DataHub.Messages
         DataSetNotFound,
         CouldNotReadData,
         InvalidLabelId,
-        NoTestsAvailable
+        NoTestsAvailable,
+        NameAlreadyInUse,
+        DataSetInUse,
+        LabelUsedInTests,
+        TestNotFound,
+        MissingModelFile
     }
 }
