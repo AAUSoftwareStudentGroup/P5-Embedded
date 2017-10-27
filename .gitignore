@@ -1,3 +1,7 @@
 data/
 *.csv
 venv/
+*.cache
+*.ide
+*.pkl
+*.json

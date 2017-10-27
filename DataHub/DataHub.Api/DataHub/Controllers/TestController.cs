@@ -217,7 +217,7 @@ namespace DataHub.Controllers
 
                 return new Response();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new ErrorResponse() { ErrorCode = ErrorCode.CouldNotReadFile };
             }
@@ -249,8 +249,8 @@ namespace DataHub.Controllers
         }
 
         [HttpGet]
-        [Route("api/modeltype/{id}/test")]
-        public Response<TestInfo> GetTestForModelType(string id)
+        [Route("api/modeltype/{id}/test/{cachedIds}")]
+        public Response<TestInfo> GetTestForModelType(string id, string cachedIds)
         {
             if (id == null)
                 return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
@@ -270,6 +270,8 @@ namespace DataHub.Controllers
 
                 if (test == null)
                     return new Response<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
+
+                string[] cachedIdArray = cachedIds.Split(',');
 
                 return new Response<TestInfo>()
                 {
@@ -292,12 +294,12 @@ namespace DataHub.Controllers
                         {
                             Id = t.DataSetId,
                             Name = t.DataSet.Name,
-                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
+                            Data = cachedIdArray.Contains(id) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray()
                         }).ToArray(),
                         TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
                         {
                             Id = t.DataSetId,
-                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
+                            Data = cachedIdArray.Contains(id) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
                             Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
                             {
                                 Id = m.LabelId,
