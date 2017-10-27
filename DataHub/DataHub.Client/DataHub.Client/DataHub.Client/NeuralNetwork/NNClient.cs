@@ -17,7 +17,7 @@ namespace DataHub.Client.NeuralNetwork
 {
     public class NNClient : DataHubClient
     {
-        public NNClient() : base("Neural Network 1.0")
+        public NNClient() : base("Neural Network 1.1")
         {   }
 
         private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
@@ -78,7 +78,8 @@ namespace DataHub.Client.NeuralNetwork
             Dictionary<string, IActivationFunction> activationFunctionDict = new Dictionary<string, IActivationFunction>()
             {
                 { "sigmoid",  new ActivationSigmoid() },
-                { "relu", new ActivationReLU() }
+                { "relu", new ActivationReLU() },
+                { "sofmax", new ActivationSoftMax() }
             };
 
             string[] activationFunctionInput = testInfo.Parameters.First(pa => pa.Name == "Activation Function").Value.Split(',');
