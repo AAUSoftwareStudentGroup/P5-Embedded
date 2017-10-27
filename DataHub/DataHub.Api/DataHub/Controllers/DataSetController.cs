@@ -361,16 +361,6 @@ namespace DataHub.Controllers
             }
         }
 
-        // ______________________________________________________________________________________________________________________________________________________________________________________________________
-        //Opgave 1: mv Grouping from DH.Client to here, so GetDataByDataSetId returns List<Messages.Group> instead of Response<Messages.Data[]>. This needs the ShotIdentifier to group data. Findes herunder.
-        //Opgave 2: create new Client to send random results back (a random number between 0-1 for each person it guesses). This requires changes in the client, since it has to return probabilities instead of data. Findes i RandomClient i DataHub.Client
-        // ______________________________________________________________________________________________________________________________________________________________________________________________________
-
-        //Opgave 3: currently data gets to the client through an API-call to the database. It is sent as TestInfo with all data in TrainData (methodType/{id}/test). Instead one should e.g. call (methodType/{id}/test?cached=LIST) which should send empty data results for the cached objects, so they are not downloaded unnecessarily. The objects should still exist, just with datavariable=null.
-        // Found in TestController.cs
-        // ______________________________________________________________________________________________________________________________________________________________________________________________________
-
-        // OPGAVE: når der trænes, skal der sendes en fil med, hør morten.
         [HttpGet]
         [Route("api/dataset/{id}/data")]
         public Response<List<Group>> GetDataByDataSetId(int? id)
