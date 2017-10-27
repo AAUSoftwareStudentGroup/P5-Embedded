@@ -13,7 +13,7 @@ export class TestResult {
         private router: Router
     ) { }
 
-    public results = [];
+    public groups = [];
     public loading = true;
 
     ngOnInit() {
@@ -56,8 +56,34 @@ export class TestResult {
                                 data['Data'][r]['Incorrect'] = incorrect;
                                 data['Data'][r]['Expanded'] = false;
                             }
+                            let groupedDict = [];
+                            for(let r = 0; r < data['Data'].length; r++) {
+                                let key = data['Data'][r]['ModelTypeName'] + " - " + data['Data'][r]['ModelName'];
+                                if(groupedDict[key] == null) {
+                                    groupedDict[key] = [data['Data'][r]];
+                                } else {
+                                    groupedDict[key].push(data['Data'][r]);
+                                }
+                            }
+                            let grouped = [];
+                            for(let key in groupedDict) {
+                                let correct = 0;
+                                let incorrect = 0;
+                                for(let r = 0; r < groupedDict[key].length; r++) {
+                                    correct += groupedDict[key][r]['Correct'];
+                                    incorrect += groupedDict[key][r]['Incorrect'];
+                                }
+                                grouped.push({
+                                    'Name': key,
+                                    'Expanded': false,
+                                    'Correct': correct,
+                                    'Incorrect': incorrect,
+                                    'Accuracy': correct / (correct + incorrect) * 100,
+                                    'Results': groupedDict[key]
+                                });
+                            }
                             this.loading = false;
-                            this.results = data['Data'];
+                            this.groups = grouped;
                         }
                     }
                 );

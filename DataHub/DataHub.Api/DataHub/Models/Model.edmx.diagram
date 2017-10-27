@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="abb84c7a1a13416c986ac70ef76b5dd9" Name="Diagram1">
+      <Diagram DiagramId="069c78f050584e33a4259eaa0a8058bc" Name="Diagram1">
         <EntityTypeShape EntityType="DataHub.Models.Classification" Width="1.5" PointX="8.25" PointY="4.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DataHub.Models.DataSet" Width="1.5" PointX="0.75" PointY="8.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DataHub.Models.Label" Width="1.5" PointX="0.75" PointY="1.5" IsExpanded="true" />
@@ -16,7 +16,7 @@
         <EntityTypeShape EntityType="DataHub.Models.Test" Width="1.5" PointX="0.75" PointY="4.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DataHub.Models.TestDataSet" Width="1.5" PointX="3" PointY="4.25" IsExpanded="true" />
         <EntityTypeShape EntityType="DataHub.Models.TestLabel" Width="1.5" PointX="3" PointY="1.5" IsExpanded="true" />
-        <EntityTypeShape EntityType="DataHub.Models.TestResult" Width="1.5" PointX="6" PointY="4.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DataHub.Models.TestResult" Width="1.5" PointX="6" PointY="4.125" IsExpanded="true" />
         <AssociationConnector Association="DataHub.Models.FK__Classific__DataS__73BA3083" ManuallyRouted="false" />
         <AssociationConnector Association="DataHub.Models.FK__Classific__Label__72C60C4A" ManuallyRouted="false" />
         <AssociationConnector Association="DataHub.Models.FK__Classific__TestR__7F2BE32F" ManuallyRouted="false" />

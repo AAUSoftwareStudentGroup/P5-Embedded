@@ -1,4 +1,5 @@
 ﻿using DataHub.Client.NeuralNetwork;
+using DataHub.Client.SVM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,10 @@ namespace DataHub.Client
     {
         public static void Main(string[] args)
         {
-            NNClient nnClient = new NNClient();
+            DataHubClient client = new SVMClient();
             while (true)
             {
-                nnClient.Execute();
+                client.Execute();
             }
         }
     }

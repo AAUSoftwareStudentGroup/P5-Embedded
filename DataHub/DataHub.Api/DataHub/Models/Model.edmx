@@ -110,6 +110,7 @@
           <Property Name="TestId" Type="int" Nullable="false" />
           <Property Name="CreatedDate" Type="datetime2" Precision="7" Nullable="false" />
           <Property Name="ModelId" Type="int" Nullable="false" />
+          <Property Name="ModelFileName" Type="varchar" MaxLength="255" />
         </EntityType>
         <Association Name="FK__Classific__DataS__73BA3083">
           <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
@@ -502,6 +503,7 @@
           <Property Name="TestId" Type="Int32" Nullable="false" />
           <Property Name="CreatedDate" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="ModelId" Type="Int32" Nullable="false" />
+          <Property Name="ModelFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Classification" Relationship="Self.FK__Classific__TestR__7F2BE32F" FromRole="TestResult" ToRole="Classification" />
           <NavigationProperty Name="Model" Relationship="Self.FK__TestResul__Model__00200768" FromRole="TestResult" ToRole="Model" />
           <NavigationProperty Name="Test" Relationship="Self.FK__TestResul__TestI__6EF57B66" FromRole="TestResult" ToRole="Test" />
@@ -881,6 +883,7 @@
                 <ScalarProperty Name="TestId" ColumnName="TestId" />
                 <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
                 <ScalarProperty Name="ModelId" ColumnName="ModelId" />
+                <ScalarProperty Name="ModelFileName" ColumnName="ModelFileName" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
