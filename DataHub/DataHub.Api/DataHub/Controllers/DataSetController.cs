@@ -367,9 +367,10 @@ namespace DataHub.Controllers
         // ______________________________________________________________________________________________________________________________________________________________________________________________________
 
         //Opgave 3: currently data gets to the client through an API-call to the database. It is sent as TestInfo with all data in TrainData (methodType/{id}/test). Instead one should e.g. call (methodType/{id}/test?cached=LIST) which should send empty data results for the cached objects, so they are not downloaded unnecessarily. The objects should still exist, just with datavariable=null.
+        // Found in TestController.cs
         // ______________________________________________________________________________________________________________________________________________________________________________________________________
 
-        // OPGAVE: når der trænes, skal der sendes en fil med, hør morten. 
+        // OPGAVE: når der trænes, skal der sendes en fil med, hør morten.
         [HttpGet]
         [Route("api/dataset/{id}/data")]
         public Response<List<Group>> GetDataByDataSetId(int? id)
