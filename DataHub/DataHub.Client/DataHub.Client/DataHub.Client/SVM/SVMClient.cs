@@ -1,24 +1,22 @@
-﻿using DataHub.Grouping;
-using DataHub.Messages;
-using Encog.Engine.Network.Activation;
-using Encog.ML.Data.Basic;
-using Encog.ML.Train;
-using Encog.Neural.Networks;
-using Encog.Neural.Networks.Layers;
-using Encog.Neural.Networks.Training.Propagation.Resilient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataHub.Messages;
+using Encog.ML.Data.Basic;
+using Encog.ML.SVM;
+using Encog.ML.SVM.Training;
+using Encog.ML.Train;
+using DataHub.Grouping;
 
-
-namespace DataHub.Client.NeuralNetwork
+namespace DataHub.Client.SVM
 {
-    public class NNClient : DataHubClient
+    public class SVMClient : DataHubClient
     {
-        public NNClient() : base("Neural Network 1.1")
-        {   }
+        public SVMClient() : base("SVM Encog 0.3")
+        {
+        }
 
         private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
         {
@@ -37,14 +35,14 @@ namespace DataHub.Client.NeuralNetwork
 
                     foreach (var data in group.Data.Take(10))
                     {
-                        input.Add(data.X / 2000);
-                        input.Add(data.Y / 2000);
-                        input.Add(data.Z / 2000);
-                        input.Add(data.RX / 10000);
+                        input.Add(data.X / 10000);
+                        input.Add(data.Y / 10000);
+                        input.Add(data.Z / 10000);
+                        input.Add(data.RX / 30000);
                     }
 
-                    double[] output = new double[trainData.Keys.Count];
-                    output[i] = 1;
+                    double[] output = new double[1];
+                    output[0] = i;
                     inputs.Add(input.ToArray());
                     outputs.Add(output);
                 }
@@ -75,38 +73,12 @@ namespace DataHub.Client.NeuralNetwork
         {
             BasicMLDataSet dataset = ConvertData(testInfo, trainData);
 
-            Dictionary<string, IActivationFunction> activationFunctionDict = new Dictionary<string, IActivationFunction>()
-            {
-                { "sigmoid",  new ActivationSigmoid() },
-                { "relu", new ActivationReLU() },
-                { "sofmax", new ActivationSoftMax() }
-            };
+            var model = new SupportVectorMachine(40, false);
 
-            string[] activationFunctionInput = testInfo.Parameters.First(pa => pa.Name == "Activation Function").Value.Split(',');
-            string[] biasNodeInput = testInfo.Parameters.First(pa => pa.Name == "Bias Node").Value.Split(',');
-            string[] neuronsInput = testInfo.Parameters.First(pa => pa.Name == "Neurons").Value.Split(',');
+            model.Params.C = 100;
+            model.Params.gamma = 0.1;
 
-            // intialise network and create first layer
-            var network = new BasicNetwork();
-            network.AddLayer(new BasicLayer(null, true, 40));
-
-            // assuming the four arrays are of same length, perhaps make a check for this
-            // add layers corresponding to parameter input
-            for (int i = 0; i < biasNodeInput.Length; i++)
-            {
-                var activationFunction = activationFunctionDict[activationFunctionInput[i].Trim()];
-                var hasBias = biasNodeInput[i].Trim() == "true";
-                var neuronCount = int.Parse(neuronsInput[i]);
-
-                network.AddLayer(new BasicLayer(activationFunction, hasBias, neuronCount));
-            }
-
-            // create last layer and finalise structure of network
-            network.AddLayer(new BasicLayer(new ActivationSigmoid(), false, testInfo.Labels.Length));
-            network.Structure.FinalizeStructure();
-            network.Reset();
-
-            IMLTrain train = new ResilientPropagation(network, dataset);
+            IMLTrain train = new SVMSearchTrain(model, dataset);
 
             ShotIdentifier shotIdentifier = new ShotIdentifier();
 
@@ -148,16 +120,15 @@ namespace DataHub.Client.NeuralNetwork
                         List<double> input = new List<double>();
                         foreach (var d in group.Data.Take(10))
                         {
-                            input.Add(d.X / 2000);
-                            input.Add(d.Y / 2000);
-                            input.Add(d.Z / 2000);
-                            input.Add(d.RX / 10000);
+                            input.Add(d.X / 20000);
+                            input.Add(d.Y / 20000);
+                            input.Add(d.Z / 20000);
+                            input.Add(d.RX / 30000);
                         }
-                        var output = network.Compute(new BasicMLData(input.ToArray()));
-                        for (int n = 0; n < output.Count; n++)
-                        {
-                            confidence[n] += output[n];
-                        }
+                        var output = model.Compute(new BasicMLData(input.ToArray()));
+                        //Console.WriteLine(testSet.Name + ": " + testInfo.Labels[(int)output[0]].Name);
+
+                        confidence[(int)output[0]]++;
                         no++;
                     }
                 }
@@ -180,7 +151,6 @@ namespace DataHub.Client.NeuralNetwork
                     DataSetId = testSet.Id,
                     Classifications = classifications.ToArray()
                 });
-
                 Console.WriteLine(testSet.Name + ": " + string.Join(" ", confidence.Select(c => Math.Round(c * 100) / 100)));
             }
 
