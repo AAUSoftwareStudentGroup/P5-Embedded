@@ -294,12 +294,12 @@ namespace DataHub.Controllers
                         {
                             Id = t.DataSetId,
                             Name = t.DataSet.Name,
-                            Data = cachedIdArray.Contains(id) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray()
+                            Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray()
                         }).ToArray(),
                         TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
                         {
                             Id = t.DataSetId,
-                            Data = cachedIdArray.Contains(id) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
+                            Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
                             Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
                             {
                                 Id = m.LabelId,
