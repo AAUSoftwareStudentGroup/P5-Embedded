@@ -20,6 +20,7 @@ namespace DataHub.Messages
         NameAlreadyInUse,
         DataSetInUse,
         LabelUsedInTests,
-        TestNotFound
+        TestNotFound,
+        MissingModelFile
     }
 }

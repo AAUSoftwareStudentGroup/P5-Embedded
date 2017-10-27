@@ -2,9 +2,13 @@
 using DataHub.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
 
@@ -49,7 +53,7 @@ namespace DataHub.Controllers
 
         [HttpPost]
         [Route("api/test")]
-        public Response<Messages.Test> AddTest(Messages.NewTest newTest)
+        public Response<Messages.Test> AddTest(NewTest newTest)
         {
             var test = new Models.Test()
             {
@@ -162,6 +166,88 @@ namespace DataHub.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("api/test/{testId}/result/{testResultId}/modelfile")]
+        public async Task<Response> UploadModelFile(int? testId, int? testResultId)
+        {
+            if (!Request.Content.IsMimeMultipartContent())
+            {
+                return new ErrorResponse() { ErrorCode = ErrorCode.MissingModelFile };
+            }
+
+            try
+            {
+                string root = HttpContext.Current.Server.MapPath("~/App_Data/ModelFiles");
+                var provider = new MultipartFormDataStreamProvider(root);
+
+                // Read the form data.
+                await Request.Content.ReadAsMultipartAsync(provider);
+
+                var file = provider.FileData.FirstOrDefault(f => f.Headers.ContentDisposition.DispositionType.Replace("\"", "") == "form-data" && f.Headers.ContentDisposition.Name.Replace("\"", "").ToLower() == "modelfile");
+
+                if (file == null)
+                {
+                    return new Response() { ErrorCode = ErrorCode.MissingModelFile };
+                }
+
+                string fileName = Path.GetFileName(file.Headers.ContentDisposition.FileName.Replace("\"", ""));
+
+                string mimeType = fileName.Split('.').LastOrDefault();
+
+                if (mimeType == null || mimeType != "eg")
+                {
+                    return new ErrorResponse() { ErrorCode = ErrorCode.WrongFileType };
+                }
+
+                File.Copy(file.LocalFileName, $"{file.LocalFileName}.{mimeType}");
+
+                File.Delete(file.LocalFileName);
+
+                using (Entities db = new Entities())
+                {
+                    var result = db.TestResult.FirstOrDefault(r => r.Id == testResultId);
+
+                    if (result == null)
+                        return new ErrorResponse() { ErrorCode = ErrorCode.InvalidId };
+
+                    result.ModelFileName = $"{file.LocalFileName}.{mimeType}";
+
+                    db.SaveChanges();
+                }
+
+                return new Response();
+            }
+            catch (Exception e)
+            {
+                return new ErrorResponse() { ErrorCode = ErrorCode.CouldNotReadFile };
+            }
+        }
+
+        [HttpGet]
+        [Route("api/test/{testId}/result/{testResultId}/modelfile")]
+        public Response GetModelFile(int? testId, int? testResultId)
+        {
+            using (Entities db = new Entities())
+            {
+                var result = db.TestResult.FirstOrDefault(r => r.Id == testResultId);
+
+                if (result == null)
+                    return new ErrorResponse() { ErrorCode = ErrorCode.InvalidId };
+
+                string attachment = $"attachment; filename=modelfile";
+                HttpContext.Current.Response.Clear();
+                HttpContext.Current.Response.ClearHeaders();
+                HttpContext.Current.Response.ClearContent();
+                HttpContext.Current.Response.AddHeader("content-disposition", attachment);
+                HttpContext.Current.Response.ContentType = "text/plain";
+                HttpContext.Current.Response.Charset = "utf-8";
+                HttpContext.Current.Response.BinaryWrite(File.ReadAllBytes(result.ModelFileName));
+                HttpContext.Current.Response.End();
+            }
+
+            return new Response();
+        }
+
         [HttpGet]
         [Route("api/modeltype/{id}/test")]
         public Response<TestInfo> GetTestForModelType(string id)
@@ -206,12 +292,12 @@ namespace DataHub.Controllers
                         {
                             Id = t.DataSetId,
                             Name = t.DataSet.Name,
-                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data
+                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
                         }).ToArray(),
                         TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
                         {
                             Id = t.DataSetId,
-                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data,
+                            Data = new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
                             Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
                             {
                                 Id = m.LabelId,
