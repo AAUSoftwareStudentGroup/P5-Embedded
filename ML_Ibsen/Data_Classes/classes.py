@@ -2,12 +2,13 @@ class DataSet:
 
     def __init__(self, id):
         self.id = id
+        self.shots = []
 
-    def set_df(self, df):
+    def add_shot(self, shot_data):
         # rename columns to the pythonic way
-        df.rename(columns={'Time': 'time', 'X': 'x', 'Y': 'y', 'Z': 'z', 'RX': 'rx', 'RY': 'ry', 'RZ': 'rz'},
-                  inplace=True)
-        self.df = df
+        shot_data.rename(columns={'Time': 'time', 'X': 'x', 'Y': 'y', 'Z': 'z', 'RX': 'rx', 'RY': 'ry', 'RZ': 'rz'},
+                         inplace=True)
+        self.shots.append(shot_data)       
 
 
 class TestSet(DataSet):

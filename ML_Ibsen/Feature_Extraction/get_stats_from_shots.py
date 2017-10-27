@@ -3,7 +3,7 @@ import numpy as np
 
 
 def make_statistic_features(shots):
-    shots_features = np.zeros((len(shots), 16))
+    shots_features = np.zeros((len(shots), 12))
     for c, shot in enumerate(shots):
         x_col = shot[:, 0]
         y_col = shot[:, 1]
@@ -22,7 +22,7 @@ def make_statistic_features(shots):
 
 
 def stats_extracter(col):
-    result = np.zeros(4)
+    result = np.zeros(3)
     statistics = stats.describe(col)
 
     # min
@@ -30,5 +30,8 @@ def stats_extracter(col):
     # max
     result[1] = statistics.minmax[1]
     result[2] = statistics.mean
-    result[3] = len(col)
+    #result[3] = statistics.variance
+    #result[4] = statistics.skewness
+    #result[5] = statistics.kurtosis
+
     return result

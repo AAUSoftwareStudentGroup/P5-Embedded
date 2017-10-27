@@ -4,36 +4,50 @@ from Data_Classes.classes import LabelKind
 import numpy as np
 
 
-def ANN_predict(shots, labels, parameters):
-    clf = create_classifier("ANN", shots.shape[1:], labels.shape[1], parameters)
-    clf.learn(shots, labels)
+def create_classifier_helper(model_name, init_param, input_shape=None, output_shape=None):
+    clf = create_classifier(model_name, init_param, input_shape, output_shape)
     return clf
 
 
-def RNN_predict(shots, labels, parameters):
+def teach_model(clf, shots, labels, learn_param):
+    clf.learn(shots, labels, **learn_param)
+
+
+def ANN_predict(shots, labels, init_param, learn_param):
+    clf = create_classifier_helper("ANN", learn_param, shots.shape[1:], labels.shape[1])
+    teach_model(clf, shots, labels, learn_param)
+    return clf
+
+
+def RNN_predict(shots, labels, init_param, learn_param):
     shots = np.reshape(shots, (shots.shape[0], 1, shots.shape[1]))
-    clf = create_classifier("RNN", shots.shape[1:], labels.shape[1], parameters)
-    clf.learn(shots, labels)
+    clf = create_classifier_helper("RNN", init_param, shots.shape[1:], labels.shape[1])
+    teach_model(clf, shots, labels, learn_param)
     return clf
 
 
-def make_Classification(label_probas, label_dict):
+def SVM_predict(shots, labels, init_param, learn_param):
+    clf = create_classifier_helper("SVM", init_param)
+    teach_model(clf, shots, labels, learn_param)
+    return clf
+
+
+def LR_predict(shots, labels, init_param, learn_param):
+    clf = create_classifier_helper("LR", init_param, shots.shape[1:], labels.shape[1])
+    teach_model(clf, shots, labels, learn_param)
+    return clf
+
+class Classifications:
+    def __init__(self, preds):
+        self.preds = preds
+
+
+def create_confidence_labels(label_probas, label_dict):
     labels = []
     for i in xrange(len(label_dict)):
         label = Label(label_dict[i], label_probas[i])
         labels.append(label)
     return labels
-
-
-def SVM_predict(shots, labels, parameters):
-    clf = create_classifier("SVM", shots, labels, parameters)
-    clf.learn(shots, labels)
-    return clf
-
-
-class Classifications:
-    def __init__(self, preds):
-        self.preds = preds
 
 
 # instead of label_dict then use clf.classes_ this will work with scikit check if it works with keras
@@ -47,8 +61,9 @@ def predict_tests(clf, tests, model_name, label_dict, labelkind):
         if model_name.lower() == 'rnn':
             test_data = np.reshape(test_data, (test_data.shape[0], 1, test_data.shape[1]))
         pred_probabilities = clf.predict_proba(test_data)
-        pred_probabilities = np.sum(pred_probabilities, axis=0)
-        mean_shot_probability = (pred_probabilities / len(tests[i]))
-        preds.append(make_Classification(mean_shot_probability, label_dict))
+        mean_shot_probability = np.mean(pred_probabilities, axis = 0)
+        print "mean_shot"
+        print mean_shot_probability
+        preds.append(create_confidence_labels(mean_shot_probability, label_dict))
 
     return preds

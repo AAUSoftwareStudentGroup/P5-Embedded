@@ -5,5 +5,5 @@ class Strategy:
             self.execute = func
 
     def execute(self):
+        # method should be overwritten
         raise NotImplementedError()
-        # will be overwritten

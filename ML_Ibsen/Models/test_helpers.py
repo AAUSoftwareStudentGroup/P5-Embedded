@@ -1,12 +1,11 @@
-from Data_Processing.process_data import process_data_v2
+from Data_Processing.process_data import make_features
 import numpy as np
 
 
-def create_tests_v2(tests, invert=False):
-
+def create_tests(tests, invert=False):
     result = []
     for test in tests:
-        processed_data = process_data_v2(test.df, "shot_stats")
+        processed_data = make_features(test.shots, "shot_stats")
         if invert:
             result.append(np.reshape(processed_data, (processed_data.shape[0], 1, processed_data.shape[1])))
         else:

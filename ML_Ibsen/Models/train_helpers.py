@@ -1,25 +1,19 @@
 import numpy as np
-#from Data_Processing.process_helpers import shuffle
 
 
 def equal_size_train(train_dict):
-    # min val:
     min_val = min([len(value.data) for value in train_dict.values()])
     for key, value in train_dict.items():
-        #shuffle(value.data)
+        train_set = train_dict[key].data
+        if len(train_set) > min_val:
+            np.random.shuffle(value.data)
         train_dict[key].data = value.data[:min_val]
     return list(train_dict.values())
 
 
-def extract_test(np_array, n):
-    if n > len(np_array):
-        raise ValueError('n should not exeed the nr of shots ')
-    else:
-        # return train,test
-        return (np_array[:-n], np_array[-n:])
-
-
 def merge_trains(array):
+    if len(array) == 0:
+        raise ValueError("cannot train on empty data")
     train_list = array[0].data
     label_list = [array[0].label] * len(array[0].data)
     if len(array) > 1:
