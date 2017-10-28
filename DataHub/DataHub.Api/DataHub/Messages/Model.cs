@@ -12,5 +12,6 @@ namespace DataHub.Messages
         public string TypeName { get; set; }
         public int TypeId { get; set; }
         public Messages.Parameter[] Parameters { get; set; }
+        public double Accuracy { get; set; }
     }
 }

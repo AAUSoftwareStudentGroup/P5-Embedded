@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -21,14 +22,17 @@ namespace DataHub.Controllers
         [Route("api/test")]
         public Response<Messages.Test[]> GetAllTests()
         {
-            return new Response<Messages.Test[]>() { Data = new Entities().Test.Where(t => t.IsActive == 1).Select(t => new Messages.Test()
+            return new Response<Messages.Test[]>()
             {
-                Id = t.Id,
-                LabelIds = t.TestLabel.Select(l => l.LabelId),
-                TestSetIds = t.TestDataSet.Where(d => d.IsTestSet == 1).Select(d => d.DataSetId),
-                TrainingSetIds = t.TestDataSet.Where(d => d.IsTraningSet == 1).Select(d => d.DataSetId),
-                ResultIds = t.TestResult.Select(r => r.Id)
-            }).ToArray() };
+                Data = new Entities().Test.Where(t => t.IsActive == 1).Select(t => new Messages.Test()
+                {
+                    Id = t.Id,
+                    LabelIds = t.TestLabel.Select(l => l.LabelId),
+                    TestSetIds = t.TestDataSet.Where(d => d.IsTestSet == 1).Select(d => d.DataSetId),
+                    TrainingSetIds = t.TestDataSet.Where(d => d.IsTraningSet == 1).Select(d => d.DataSetId),
+                    ResultIds = t.TestResult.Select(r => r.Id)
+                }).ToArray()
+            };
         }
 
         [HttpGet]
@@ -142,7 +146,7 @@ namespace DataHub.Controllers
 
                 return new Response<Messages.TestResult[]>()
                 {
-                    Data = test.TestResult.Select(t => new Messages.TestResult()
+                    Data = test.TestResult.ToArray().Select(t => new Messages.TestResult()
                     {
                         Id = t.Id,
                         ModelId = t.ModelId,
@@ -250,7 +254,7 @@ namespace DataHub.Controllers
 
         [HttpGet]
         [Route("api/modeltype/{id}/test")]
-        public Response<TestInfo> GetTestForModelType(string id, string cachedIds)
+        public Response<TestInfo> GetTestForModelType(string id, string cachedIds = "")
         {
             cachedIds = cachedIds ?? "";
             if (id == null)
@@ -258,57 +262,67 @@ namespace DataHub.Controllers
 
             using (Entities db = new Entities())
             {
-                var modelType = db.ModelType.Where(m => m.IsActive == 1).FirstOrDefault(m => m.Id.ToString() == id || m.Name == id);
-                if (modelType == null)
-                    return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
-
-                var model = modelType.Model.Where(m => m.IsActive == 1).OrderBy(t => t.TestResult.Count).FirstOrDefault();
-
-                if (model == null)
-                    return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
-
-                var test = db.Test.Where(t => t.IsActive == 1).OrderBy(t => t.TestResult.Where(r => r.ModelId == model.Id).Count()).FirstOrDefault();
-
-                if (test == null)
-                    return new Response<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
-
-                string[] cachedIdArray = cachedIds.Split(',');
-
-                return new Response<TestInfo>()
+                try
                 {
-                    Data = new TestInfo()
+                    var modelType = db.ModelType.Where(m => m.IsActive == 1).FirstOrDefault(m => m.Id.ToString() == id || m.Name == id);
+                    if (modelType == null)
+                        return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
+
+                    var model = modelType.Model.Where(m => m.IsActive == 1).OrderBy(t => t.TestResult.Count).FirstOrDefault();
+
+                    if (model == null)
+                        return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
+
+                    var test = db.Test.Where(t => t.IsActive == 1).OrderBy(t => t.TestResult.Where(r => r.ModelId == model.Id).Count()).FirstOrDefault();
+
+                    if (test == null)
+                        return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
+
+                    string[] cachedIdArray = cachedIds.Split(',');
+
+
+
+                    return new Response<TestInfo>()
                     {
-                        Id = test.Id,
-                        ModelId = model.Id,
-                        ModelName = model.Name,
-                        ModelTypeName = model.ModelType.Name,
-                        ModelTypeId = model.ModelTypeId,
-                        Labels = test.TestLabel.Select(t => new Messages.Label() { Id = t.LabelId, Name = t.Label.Name }).ToArray(),
-                        Parameters = model.Parameter.Select(p => new Messages.Parameter()
+                        Data = new TestInfo()
                         {
-                            Id = p.Id,
-                            Name = p.Property.Name,
-                            PropertyId = p.PropertyId,
-                            Value = p.Value
-                        }).ToArray(),
-                        TestSet = test.TestDataSet.Where(t => t.IsTestSet == 1).Select(t => new Messages.TestDataSet()
-                        {
-                            Id = t.DataSetId,
-                            Name = t.DataSet.Name,
-                            Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray()
-                        }).ToArray(),
-                        TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
-                        {
-                            Id = t.DataSetId,
-                            Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new DataSetController().GetDataByDataSetId(t.DataSetId).Data.ToArray(),
-                            Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
+                            Id = test.Id,
+                            ModelId = model.Id,
+                            ModelName = model.Name,
+                            ModelTypeName = model.ModelType.Name,
+                            ModelTypeId = model.ModelTypeId,
+                            Labels = test.TestLabel.Select(t => new Messages.Label() { Id = t.LabelId, Name = t.Label.Name }).ToArray(),
+                            Parameters = model.Parameter.Select(p => new Messages.Parameter()
                             {
-                                Id = m.LabelId,
-                                Name = m.Label.Name
+                                Id = p.Id,
+                                Name = p.Property.Name,
+                                PropertyId = p.PropertyId,
+                                Value = p.Value
+                            }).ToArray(),
+                            TestSet = test.TestDataSet.Where(t => t.IsTestSet == 1).Select(t => new Messages.TestDataSet()
+                            {
+                                Id = t.DataSetId,
+                                Name = t.DataSet.Name,
+                                Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new ShotIdentifier().Identify(new DataSetController().GetDataByDataSetId(t.DataSetId).Data).Where(d => d.Data.Length >= 10).ToArray()
+                            }).ToArray(),
+                            TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
+                            {
+                                Id = t.DataSetId,
+                                Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new ShotIdentifier().Identify(new DataSetController().GetDataByDataSetId(t.DataSetId).Data).Where(d => d.Data.Length >= 10).ToArray(),
+                                Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
+                                {
+                                    Id = m.LabelId,
+                                    Name = m.Label.Name
+                                }).ToArray()
                             }).ToArray()
-                        }).ToArray()
-                    }
-                };
+                        }
+                    };
+                }
+                catch (Exception e)
+                {
+                    return new ErrorResponse<TestInfo>() { Data = new TestInfo() { ModelName = e.ToString() } };
+
+                }
             }
         }
 

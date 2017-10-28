@@ -9,7 +9,7 @@ namespace DataHub.Client.Randy
 {
     class RandomClient : DataHubClient
     {
-        public RandomClient() : base("Random")
+        public RandomClient() : base("Random 1.0")
         {    }
 
         public override TestResult Train(TestInfo testInfo, TrainData trainData)
@@ -26,18 +26,22 @@ namespace DataHub.Client.Randy
                 {
                     classifications.Add(new Classification()
                     {
+                        LabelId = testInfo.Labels[e].Id,
                         Confidence = random.NextDouble()
                     });
                 }
 
                 datasetResults.Add(new DataSetResult()
                 {
+                    DataSetId = testSet.Id,
                     Classifications = classifications.ToArray()
                 });
             }
 
             return new TestResult()
             {
+                ModelId = testInfo.ModelId,
+                ModelTypeId = testInfo.ModelTypeId,
                 DataSetResults = datasetResults.ToArray()
             };
         }

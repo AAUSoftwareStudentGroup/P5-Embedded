@@ -14,9 +14,9 @@
                             <img style="margin-right: 5px;float:left;" *ngIf="!group.Expanded" src="/assets/gfx/toggle-icon.png" class="delete-icon">
                             <img style="margin-right: 5px;float:left;" *ngIf="group.Expanded" src="/assets/gfx/toggle-expanded-icon.png" class="delete-icon">
                             {{ group.Name }}
-                        </div>
+                        </div> 
                         <div style="float:right;">
-                            {{ group.Accuracy | number  }} %
+                            {{ group.Accuracy | number : '1.0-0' }} %
                             <img style="margin-left: 5px;" src="/assets/gfx/correct-icon.png" class="delete-icon">
                         </div>
                         <div class="box" *ngIf="group.Expanded" style="margin-top: 10px;">

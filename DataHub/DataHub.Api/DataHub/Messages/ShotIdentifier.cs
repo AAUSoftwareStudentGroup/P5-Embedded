@@ -9,6 +9,8 @@ namespace DataHub.Messages
     {
         public List<Group> Identify(List<Data> data)
         {
+            if (data == null)
+                return new List<Group>();
             bool measuring = false;
             int zeroStreak = 0;
             Stack<Data> groupData = new Stack<Data>();

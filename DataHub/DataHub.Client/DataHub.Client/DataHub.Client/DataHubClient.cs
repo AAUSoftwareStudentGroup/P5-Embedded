@@ -30,6 +30,7 @@ namespace DataHub.Client
         {
             ModelTypeID = modelName;
             client.BaseAddress = new Uri("http://p5datahub.azurewebsites.net");
+            //client.BaseAddress = new Uri("http://localhost:65230/");
         }
             
         private TestInfo GetTestInfo()

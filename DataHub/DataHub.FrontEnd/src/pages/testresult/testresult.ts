@@ -82,6 +82,7 @@ export class TestResult {
                                     'Results': groupedDict[key]
                                 });
                             }
+                            grouped.sort((a, b) => b['Accuracy'] - a['Accuracy']);
                             this.loading = false;
                             this.groups = grouped;
                         }

@@ -373,17 +373,17 @@ namespace DataHub.Controllers
         // OPGAVE: når der trænes, skal der sendes en fil med, hør morten.
         [HttpGet]
         [Route("api/dataset/{id}/data")]
-        public Response<List<Group>> GetDataByDataSetId(int? id)
+        public Response<List<Data>> GetDataByDataSetId(int? id)
         {
             if (id == null)
-                return new Response<List<Group>>() { ErrorCode = ErrorCode.InvalidId };
+                return new Response<List<Data>>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<List<Group>>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new Response<List<Data>>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 try
                 {
@@ -425,13 +425,11 @@ namespace DataHub.Controllers
                         }
                     }
 
-                    ShotIdentifier shotIdentifier = new ShotIdentifier();
-
-                    return new Response<List<Group>>() { Data = shotIdentifier.Identify(downScaled) };
+                    return new Response<List<Data>>() { Data = downScaled };
                 }
                 catch (Exception)
                 {
-                    return new Response<List<Group>>() { ErrorCode = ErrorCode.CouldNotReadData };
+                    return new Response<List<Data>>() { ErrorCode = ErrorCode.CouldNotReadData };
                 }
             }
         }
