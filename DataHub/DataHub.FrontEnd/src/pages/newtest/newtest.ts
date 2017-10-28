@@ -82,16 +82,16 @@ export class NewTest {
     }
 
     public selectTrainingData(dataset) {
-        if(this.test.TrainingDataSetIds.indexOf(dataset.Id) == -1)
+        if(this.test.TrainingDataSetIds.indexOf(dataset.Id) == -1) {
             this.test.TrainingDataSetIds.push(dataset.Id);
-        else
-            this.test.TrainingDataSetIds.splice(this.test.TrainingDataSetIds.indexOf(dataset.Id), 1);
+            this.test.TestDataSetIds.splice(this.test.TestDataSetIds.indexOf(dataset.Id), 1);
+        }
     }
 
     public selectTestData(dataset) {
-        if(this.test.TestDataSetIds.indexOf(dataset.Id) == -1)
+        if(this.test.TestDataSetIds.indexOf(dataset.Id) == -1) {
             this.test.TestDataSetIds.push(dataset.Id);
-        else
-            this.test.TestDataSetIds.splice(this.test.TestDataSetIds.indexOf(dataset.Id), 1);
+            this.test.TrainingDataSetIds.splice(this.test.TrainingDataSetIds.indexOf(dataset.Id), 1);
+        }
     }
 }
