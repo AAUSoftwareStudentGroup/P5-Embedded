@@ -61,7 +61,7 @@ export class NewTest {
             if(this.hasCommonIds(this.alldatalist[i].LabelIds as any[], this.test.LabelIds as any[])) {
                 if(this.datalist.indexOf(this.alldatalist[i]) == -1) {
                     this.datalist.push(this.alldatalist[i]);
-                    this.test.TrainingDataSetIds.push(this.alldatalist[i]['Id']);
+                    this.test.TestDataSetIds.push(this.alldatalist[i]['Id']);
                 }
             } else {
                 if(this.datalist.indexOf(this.alldatalist[i]) != -1) {

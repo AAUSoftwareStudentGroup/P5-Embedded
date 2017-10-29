@@ -273,7 +273,7 @@ namespace DataHub.Controllers
                     if (model == null)
                         return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
 
-                    var test = db.Test.Where(t => t.IsActive == 1).OrderBy(t => t.TestResult.Where(r => r.ModelId == model.Id).Count()).FirstOrDefault();
+                    var test = db.Test.Where(t => t.IsActive == 1 && t.TestResult.Where(r => r.ModelId == model.Id).Count() < 10).OrderBy(t => t.TestResult.Where(r => r.ModelId == model.Id).Count()).FirstOrDefault();
 
                     if (test == null)
                         return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };

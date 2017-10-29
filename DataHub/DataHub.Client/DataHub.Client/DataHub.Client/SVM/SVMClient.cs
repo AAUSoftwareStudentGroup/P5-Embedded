@@ -14,7 +14,7 @@ namespace DataHub.Client.SVM
 {
     public class SVMClient : DataHubClient
     {
-        public SVMClient() : base("SVM Encog 0.3")
+        public SVMClient() : base("SVM encog 1.0")
         {
         }
 

@@ -94,7 +94,7 @@ namespace DataHub.Client
                 {
                     foreach (var label in trainSet.Labels)
                     {
-                        if (trainData.ContainsKey(label.Id) && group.Data.Length > 10)
+                        if (trainData.ContainsKey(label.Id) && group.Data.Length >= 10)
                             trainData[label.Id].Add(group);
                     }
                 }

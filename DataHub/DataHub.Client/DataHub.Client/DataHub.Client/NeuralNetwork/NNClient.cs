@@ -17,7 +17,7 @@ namespace DataHub.Client.NeuralNetwork
 {
     public class NNClient : DataHubClient
     {
-        public NNClient() : base("Neural Network 1.1")
+        public NNClient() : base("NN encog 1.0")
         {   }
 
         private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
@@ -79,7 +79,7 @@ namespace DataHub.Client.NeuralNetwork
             {
                 { "sigmoid",  new ActivationSigmoid() },
                 { "relu", new ActivationReLU() },
-                { "sofmax", new ActivationSoftMax() }
+                { "softmax", new ActivationSoftMax() }
             };
 
             string[] activationFunctionInput = testInfo.Parameters.First(pa => pa.Name == "Activation Function").Value.Split(',');
@@ -129,7 +129,7 @@ namespace DataHub.Client.NeuralNetwork
                 int no = 0;
                 foreach (var group in testSet.Data)
                 {
-                    if (group.Data.Length > 10)
+                    if (group.Data.Length >= 10)
                     {
                         List<double> input = new List<double>();
                         foreach (var d in group.Data.Take(10))

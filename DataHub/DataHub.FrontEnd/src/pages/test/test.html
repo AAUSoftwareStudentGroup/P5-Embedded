@@ -12,8 +12,9 @@
                 <div *ngFor="let test of tests">
                     <div class="datalist-row">
                         <div style="margin-right: 50px;display: inline" [routerLink]="['/test', test.Id]">
-                            <div style="display: inline-block; cursor: pointer; width:10%;word-break:keep-all;">
-                            {{ test.LabelIds.length }} labels
+                            <div style="display: inline-block; cursor: pointer; width:40%;word-break:keep-all;">
+                            {{ test.LabelIds.length }} labels:
+                                <div style="display: inline-block;" *ngFor="let label of test.Labels">{{ label }}&nbsp;</div>
                             </div>
                             <div style="display: inline-block; cursor: pointer; width:10%;">
                             {{ test.TrainingSetIds.length }} train sets

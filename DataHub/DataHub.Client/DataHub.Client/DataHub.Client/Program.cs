@@ -1,4 +1,5 @@
-﻿using DataHub.Client.NeuralNetwork;
+﻿using DataHub.Client.MultiBinary;
+using DataHub.Client.NeuralNetwork;
 using DataHub.Client.Randy;
 using DataHub.Client.SVM;
 using System;
@@ -13,7 +14,7 @@ namespace DataHub.Client
     {
         public static void Main(string[] args)
         {
-            DataHubClient[] clients = new DataHubClient[] { new NNClient(), new RandomClient(), new SVMClient() };
+            DataHubClient[] clients = new DataHubClient[] { new NNClient(), new RandomClient()/*, new SVMClient() */};
             while (true)
             {
                 foreach (var client in clients)
