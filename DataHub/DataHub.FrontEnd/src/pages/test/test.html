@@ -1,0 +1,38 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<h2 style="display: inline-block;">Test</h2>
+        <img src="/assets/gfx/add-icon.png" [routerLink]="['/newtest']" class="add-icon">
+        <div *ngIf="loading" class="center upload-button">
+            <img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+            Loading
+        </div>
+        <div style="top: 60px;" class="separator-upper"></div>
+        <div class="list">
+            <div class="box">
+                <div *ngFor="let test of tests">
+                    <div class="datalist-row">
+                        <div style="margin-right: 50px;display: inline" [routerLink]="['/test', test.Id]">
+                            <div style="display: inline-block; cursor: pointer; width:10%;word-break:keep-all;">
+                            {{ test.LabelIds.length }} labels
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.TrainingSetIds.length }} train sets
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.TestSetIds.length }} test sets
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.ResultIds.length }} results
+                            </div>
+                            <div style="display: inline-block; cursor: pointer; width:10%;">
+                            {{ test.Status }}
+                            </div>
+                        </div>
+                        <img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteTest(test)">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="bottom: 15px;" class="separator-lower"></div>
+	</div>
+</div>

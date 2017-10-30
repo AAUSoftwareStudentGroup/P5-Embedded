@@ -1,0 +1,28 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<div>
+			<h2 style="float:left;">New Model</h2>
+			<div class="button-save" (click)="save()">Save</div>
+		</div>
+		<div style="clear: both">
+			<h3 style="margin-bottom: 5px;">Name</h3>
+			<div style="width: 100%;">
+				<input type="text" [ngModel]="model.Name" (ngModelChange)="model.Name = $event" class="input-field" style="width: 50%;margin: 0px;">
+			</div>
+		</div>
+		<div style="clear: both">
+			<h3 style="margin-bottom: 5px;">Type</h3>
+			<div style="width: 100%;">
+				<select type="text" [ngModel]="model.TypeId" (ngModelChange)="typeChanged($event)" class="input-field" style="width: 30%;margin: 0px;">
+					<option *ngFor="let modelType of modelTypes" [value]="modelType.Id">{{modelType.Name}}</option>
+				</select>
+			</div>
+		</div>
+		<div *ngFor="let parameter of model.Parameters" style="clear: both">
+			<h3 style="margin-bottom: 5px;">{{parameter.Name}} - {{parameter.Type}}</h3>
+			<div style="width: 100%;">
+				<input type="text" [ngModel]="parameter.Value" (ngModelChange)="parameter.Value = $event" class="input-field" style="width: 50%;margin: 0px;">
+			</div>
+		</div>
+	</div>
+</div>

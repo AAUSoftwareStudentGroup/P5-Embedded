@@ -1,0 +1,12 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<h2>Visualisation</h2>
+		<div *ngIf="loading" style="z-index: 9; top: 50%; left:50%; margin-left: -25px; position: absolute;">
+			<div class="center upload-button">
+				<img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+				Loading
+			</div>
+		</div>
+		<chart [options]="dataChartOptions" (load)="saveInstance($event.context)"></chart>
+	</div>
+</div>

@@ -1,0 +1,10 @@
+<div class="menu">
+    <div *ngFor="let page of pages" [routerLink]="[page.path]" class="menu-item">
+        <div *ngIf="currentPath == page.path" class="selected"></div>
+        <img [src]="page.icon"><br>
+        {{ page.name }}
+    </div>
+</div>
+<div class="content">
+    <router-outlet></router-outlet>
+</div>

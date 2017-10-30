@@ -1,0 +1,47 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<h2>Model</h2>
+		<h3 style="margin-top: 0px;display: inline-block;">Types</h3>
+		<img src="/assets/gfx/add-icon.png" [routerLink]="['/newmodeltype']" class="add-icon">
+		<div style="top: 100px;z-index: -1;" class="separator-upper"></div>
+		<div class="list" style="bottom: 50%; margin-top:40px;">
+			<div *ngIf="loadingModelTypes" class="center upload-button">
+				<img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+				Loading
+			</div>
+            <div class="box" style="margin: 0px;">
+                <div *ngFor="let modelType of modelTypes" class="pointer">
+                    <div class="datalist-row">
+						<div style="display:inline-block;width:40%" [routerLink]="['/newmodeltype', modelType.Id]">
+						{{ modelType.Name }}
+						</div>
+						<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteModelType(modelType)">
+						<!--<div style="float: right;">{{ dataset.MeasuredDate | date:'medium' }}</div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div style="top: 50%;" class="separator-lower"></div>
+		<div style="top: 50%;margin-top: 45px;" class="separator-upper"></div>
+		<div style="position:absolute; top: 50%;">
+		<h3 style="display: inline-block;">Models</h3>
+		<img src="/assets/gfx/add-icon.png" [routerLink]="['/newmodel']" class="add-icon">
+		</div>
+		<div class="list" style="top: 50%; margin-top:50px;">
+			<div *ngIf="loadingModels" class="center upload-button">
+				<img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+				Loading
+			</div>
+            <div class="box" style="margin: 0px;">
+                <div *ngFor="let model of models" class="pointer">
+                    <div class="datalist-row">
+						<div style="display:inline-block;width:40%" [routerLink]="['/newmodel', model.Id]">{{ model.Name }}</div>
+						<div style="display:inline-block;width:40%" [routerLink]="['/newmodel', model.Id]">{{ model.TypeName }}</div>
+						<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteModel(model)">
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div style="bottom: 20px;" class="separator-lower"></div>
+	</div>
+</div>

@@ -10,15 +10,15 @@
 WiFiUDP client;
 const char* ssid = "Tardis";
 const char* password = "geronimo";
-bool state = true;
+int state = 0;
+int stillConnected = 1;
 
-int b = 1; // Number of datapoints to read before sending. Change size of array on next line accordingly
-int16_t data[100*7];
-int sent;
-int16_t dataindex;
 int mil;
 int lastMillis;
-IPAddress ipaddr;
+IPAddress recieverIP;
+
+int lastread;
+int LED = 16;
 
 void setup_mpu6050() {
   Wire.begin(5,4);
@@ -49,12 +49,14 @@ void mpu6050_get_data(
   *ry=Wire.read()<<8|Wire.read();  // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   *rz=Wire.read()<<8|Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 }
-int lastread;
 
 void setup() {
+    pinMode(LED, OUTPUT);
+    IPAddress defaultIP = client.remoteIP();
+
     // initialize serial communication for debugging purposes
     Serial.begin(115200);
-
+    
     Serial.print("Joining I2C\n");
     // join I2C bus
     setup_mpu6050();
@@ -67,6 +69,7 @@ void setup() {
     while(WiFi.status() != WL_CONNECTED) {
         Serial.print(".");
         delay(500);
+        digitalWrite(LED, state++ % 2);
     }
     
     Serial.print("\n");
@@ -75,16 +78,24 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     lastMillis = millis();
-    dataindex = 0;
-    sent = 0;
     //Connect(); // No need to connect when using UDP
     client.begin(8085);
-    client.beginPacket(client.remoteIP(), 8085);
+    // client.beginPacket(client.remoteIP(), 8085);
+    while(client.remoteIP() == defaultIP) {
+      delay(250);
+      digitalWrite(LED, state++ % 2);
+    }
+    recieverIP = client.remoteIP();
     lastread = 0;
+    state = 0;
 }
 
 void loop() {
-  client.beginPacket(client.remoteIP(), 8085);
+  // When receiving packet, reset stillConnected to like 100. If no packet was received in 100 datapoints, turn off LED
+  if(client.parsePacket()) {
+    stillConnected = 50;
+  }
+  client.beginPacket(recieverIP, 8085);
   mil = millis();
   client.write((int8_t)(mil - lastMillis));
   lastMillis = mil;
@@ -100,4 +111,5 @@ void loop() {
   client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
   client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
   client.endPacket();
+  digitalWrite(LED, stillConnected-- > 0);
 }
