@@ -17,7 +17,7 @@ export class Service {
             .toPromise()
             .catch(error => {
                 console.debug('Error fetching accounts: ' + error.message);
-            });
+            }); 
     }
 
     public fetchDataSet(id) {
@@ -206,6 +206,14 @@ export class Service {
 
     public fetchResults(id) {
         return this.http.get(this.API_URL + "/api/test/" + id + "/result")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    public fetchTestModels(id) {
+        return this.http.get(this.API_URL + "/api/test/" + id + "/model")
             .toPromise()
             .catch(error => {
                 console.debug('Error fetching accounts: ' + error.message);

@@ -22,24 +22,57 @@ namespace DataHub.Client
         public string ModelTypeID { get; set; }
         HttpClient client = new HttpClient();
 
+        private static Dictionary<int, TestDataSet> testData = new Dictionary<int, TestDataSet>();
+        private static Dictionary<int, DataLabelSet> trainData = new Dictionary<int, DataLabelSet>();
+
+
         public DataHubClient(string modelName)
         {
             ModelTypeID = modelName;
             client.BaseAddress = new Uri("http://p5datahub.azurewebsites.net");
+            //client.BaseAddress = new Uri("http://localhost:65230/");
         }
-
+            
         private TestInfo GetTestInfo()
         {
-            var tests = client.GetAsync("/api/modeltype/"+ModelTypeID+"/test");
+            var tests = client.GetAsync("/api/modeltype/"+ModelTypeID+"/test?cachedIds=" + string.Join(",", testData.Keys.Concat(trainData.Keys)));
 
             Console.WriteLine("Sending request");
 
             string json = tests.Result.Content.ReadAsStringAsync().Result;
-            var tI = Newtonsoft.Json.JsonConvert.DeserializeObject<Response<TestInfo>>(json).Data;
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<Response<TestInfo>>(json);
 
             Console.WriteLine("Received request");
-
-            return tI;
+            if (response.Success)
+            {
+                foreach (var set in response.Data.TestSet)
+                {
+                    if (set.Data == null)
+                    {
+                        if(testData.ContainsKey(set.Id))
+                            set.Data = testData[set.Id].Data;
+                        else
+                            set.Data = trainData[set.Id].Data;
+                    }
+                    else
+                        testData.Add(set.Id, set);
+                }
+                foreach (var set in response.Data.TrainingSet)
+                {
+                    if (set.Data == null)
+                    {
+                        if (testData.ContainsKey(set.Id))
+                            set.Data = testData[set.Id].Data;
+                        else
+                            set.Data = trainData[set.Id].Data;
+                    }
+                    else
+                        trainData.Add(set.Id, set);
+                }
+                return response.Data;
+            }
+            else
+                return null;
         }
 
         private TrainData IdentifyData(TestInfo testInfo)
@@ -49,31 +82,19 @@ namespace DataHub.Client
 
             foreach (var label in testInfo.Labels)
             {
-                trainData.Add(label.Id, new List<Group>());
+                trainData.Add(label.Id, new List<Messages.Group>());
             }
 
-            var shotIdentifier = new ShotIdentifier();
 
             Console.WriteLine("Identifying");
 
             foreach (var trainSet in testInfo.TrainingSet)
             {
-                var data = trainSet.Data.Select(d => new DataPoint()
-                {
-                    Time = d.Time,
-                    RX = d.RX,
-                    RY = d.RY,
-                    RZ = d.RZ,
-                    X = d.X,
-                    Y = d.Y,
-                    Z = d.Z
-                }).ToArray();
-                var groups = shotIdentifier.Identify(data);
-                foreach (var group in groups)
+                foreach (var group in trainSet.Data)
                 {
                     foreach (var label in trainSet.Labels)
                     {
-                        if (trainData.ContainsKey(label.Id) && group.Data.Length > 10)
+                        if (trainData.ContainsKey(label.Id) && group.Data.Length >= 10)
                             trainData[label.Id].Add(group);
                     }
                 }
@@ -109,6 +130,8 @@ namespace DataHub.Client
         public void Execute()
         {
             TestInfo testInfo = GetTestInfo();
+            if (testInfo == null)
+                return;
             TrainData trainData = IdentifyData(testInfo);
             TestResult result = Train(testInfo, trainData);
 

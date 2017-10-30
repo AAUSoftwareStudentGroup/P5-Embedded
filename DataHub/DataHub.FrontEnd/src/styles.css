@@ -25,6 +25,7 @@ html, body {
 	position: absolute;
 	height: 4px;
 	right: 15px; 
+	z-index: 1000;
 	left: 15px;  
 	background-color: #f0f0f0;
 }

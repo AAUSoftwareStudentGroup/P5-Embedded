@@ -17,9 +17,8 @@ namespace DataHub.Client.NeuralNetwork
 {
     public class NNClient : DataHubClient
     {
-        public NNClient() : base("Neural Network 1.0")
-        {
-        }
+        public NNClient() : base("NN encog 1.0")
+        {   }
 
         private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
         {
@@ -76,26 +75,16 @@ namespace DataHub.Client.NeuralNetwork
         {
             BasicMLDataSet dataset = ConvertData(testInfo, trainData);
 
-            // testInfo.parameters
-            // map parameter with dict value, e.g. "true"->true
-            // Hidden Neurons -> HiddenNeurons, 
-            // hasBias[0] == hasBias for 1st layer
-            // exception, evt. writeline: invalid parameters, stop program
-            // parameter is gotten through a long string, e.g.: 1, 2, 3. Use split(',') to get parameter[] = [1, 2, 3]
-            // Hidden Neurons, 
-            // test info.parameters is what WE specify
-            //
-
             Dictionary<string, IActivationFunction> activationFunctionDict = new Dictionary<string, IActivationFunction>()
             {
                 { "sigmoid",  new ActivationSigmoid() },
-                { "relu", new ActivationReLU() }
+                { "relu", new ActivationReLU() },
+                { "softmax", new ActivationSoftMax() }
             };
 
-
-            string[] biasNodeArray = testInfo.Parameters.First(pa => pa.Name == "Bias Node").Value.Split(',');
-            string[] activationFunctionArray = testInfo.Parameters.First(pa => pa.Name == "Activation Function").Value.Split(',');
-            string[] neuronsArray = testInfo.Parameters.First(pa => pa.Name == "Neurons").Value.Split(',');
+            string[] activationFunctionInput = testInfo.Parameters.First(pa => pa.Name == "Activation Function").Value.Split(',');
+            string[] biasNodeInput = testInfo.Parameters.First(pa => pa.Name == "Bias Node").Value.Split(',');
+            string[] neuronsInput = testInfo.Parameters.First(pa => pa.Name == "Neurons").Value.Split(',');
 
             // intialise network and create first layer
             var network = new BasicNetwork();
@@ -103,11 +92,12 @@ namespace DataHub.Client.NeuralNetwork
 
             // assuming the four arrays are of same length, perhaps make a check for this
             // add layers corresponding to parameter input
-            for (int i = 0; i < biasNodeArray.Length; i++)
+            for (int i = 0; i < biasNodeInput.Length; i++)
             {
-                var activationFunction = activationFunctionDict[activationFunctionArray[i].Trim()];
-                var hasBias = biasNodeArray[i].Trim() == "true";
-                var neuronCount = int.Parse(neuronsArray[i]);
+                var activationFunction = activationFunctionDict[activationFunctionInput[i].Trim()];
+                var hasBias = biasNodeInput[i].Trim() == "true";
+                var neuronCount = int.Parse(neuronsInput[i]);
+
                 network.AddLayer(new BasicLayer(activationFunction, hasBias, neuronCount));
             }
 
@@ -117,8 +107,6 @@ namespace DataHub.Client.NeuralNetwork
             network.Reset();
 
             IMLTrain train = new ResilientPropagation(network, dataset);
-
-            ShotIdentifier shotIdentifier = new ShotIdentifier();
 
             Console.WriteLine("Training");
 
@@ -139,21 +127,9 @@ namespace DataHub.Client.NeuralNetwork
             {
                 double[] confidence = new double[testInfo.Labels.Length];
                 int no = 0;
-                var data = testSet.Data.Select(d => new DataPoint()
+                foreach (var group in testSet.Data)
                 {
-                    Time = d.Time,
-                    RX = d.RX,
-                    RY = d.RY,
-                    RZ = d.RZ,
-                    X = d.X,
-                    Y = d.Y,
-                    Z = d.Z
-                }).ToArray();
-                var groups = shotIdentifier.Identify(data);
-                foreach (var group in groups)
-                {
-
-                    if (group.Data.Length > 10)
+                    if (group.Data.Length >= 10)
                     {
                         List<double> input = new List<double>();
                         foreach (var d in group.Data.Take(10))
@@ -200,12 +176,5 @@ namespace DataHub.Client.NeuralNetwork
                 DataSetResults = datasetResults.ToArray()
             };
         }
-
-        //private BasicNetwork ConstructNetwork(TestInfo testInfo)
-        //{
-
-
-        //    return;
-        //}
     }
 }

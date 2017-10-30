@@ -82,13 +82,11 @@ namespace DataHub.Controllers
 
                 return new Response<Messages.DataSet>() { Data = message, ErrorCode = ErrorCode.NoError };
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new ErrorResponse<Messages.DataSet>() { ErrorCode = ErrorCode.CouldNotReadFile };
             }
         }
-
-        
 
         [HttpGet]
         [Route("api/dataset/{id}")]
@@ -365,21 +363,21 @@ namespace DataHub.Controllers
 
         [HttpGet]
         [Route("api/dataset/{id}/data")]
-        public Response<Messages.Data[]> GetDataByDataSetId(int? id)
+        public Response<List<Data>> GetDataByDataSetId(int? id)
         {
             if (id == null)
-                return new Response<Messages.Data[]>() { ErrorCode = ErrorCode.InvalidId };
+                return new Response<List<Data>>() { ErrorCode = ErrorCode.InvalidId };
 
             using (Entities db = new Entities())
             {
                 var dataSet = db.DataSet.FirstOrDefault(d => d.Id == id);
 
                 if (dataSet == null)
-                    return new Response<Messages.Data[]>() { ErrorCode = ErrorCode.DataSetNotFound };
+                    return new Response<List<Data>>() { ErrorCode = ErrorCode.DataSetNotFound };
 
                 try
                 {
-                    List<Messages.Data> data = new List<Data>();
+                    List<Data> data = new List<Data>();
                     double t, x, y, z, rx, ry, rz;
                     foreach (var line in File.ReadAllLines(dataSet.LocalFileName))
                     {
@@ -392,10 +390,10 @@ namespace DataHub.Controllers
                             && double.TryParse(split[5], out ry)
                             && double.TryParse(split[6], out rz))
                         {
-                            data.Add(new Messages.Data() { Time = t, X = x, Y = y, Z = z, RX = rx, RY = ry, RZ = rz });
+                            data.Add(new Data() { Time = t, X = x, Y = y, Z = z, RX = rx, RY = ry, RZ = rz });
                         }
                     }
-                    List<Messages.Data> downScaled = new List<Data>();
+                    List<Data> downScaled = new List<Data>();
                     t = 0; x = 0; y = 0; z = 0; rx = 0; ry = 0; rz = 0;
                     int c = 0;
                     int scale = 20;
@@ -411,17 +409,17 @@ namespace DataHub.Controllers
                         c++;
                         if (c == scale)
                         {
-                            downScaled.Add(new Messages.Data() { Time = t / scale, X = x / scale, Y = y / scale, Z = z / scale, RX = rx / scale, RY = ry / scale, RZ = rz / scale });
+                            downScaled.Add(new Data() { Time = t / scale, X = x / scale, Y = y / scale, Z = z / scale, RX = rx / scale, RY = ry / scale, RZ = rz / scale });
                             t = 0; x = 0; y = 0; z = 0; rx = 0; ry = 0; rz = 0;
                             c = 0;
                         }
                     }
 
-                    return new Response<Data[]>() { Data = downScaled.ToArray() };
+                    return new Response<List<Data>>() { Data = downScaled };
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    return new Response<Messages.Data[]>() { ErrorCode = ErrorCode.CouldNotReadData };
+                    return new Response<List<Data>>() { ErrorCode = ErrorCode.CouldNotReadData };
                 }
             }
         }

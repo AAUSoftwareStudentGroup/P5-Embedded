@@ -38,13 +38,13 @@
                     <div class="datalist-row">
                         {{ data.Name }}
                         <div style="float:right; margin-left: 20px;" (click)="selectTrainingData(data)">
-                            <img *ngIf="test.TrainingDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
-                            <img *ngIf="test.TrainingDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+                            <img *ngIf="test.TrainingDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/radio-icon-selected.png" class="radio-icon">
+                            <img *ngIf="test.TrainingDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/radio-icon.png" class="radio-icon">
                             Train
                         </div>
                         <div style="float:right" (click)="selectTestData(data)">
-                            <img *ngIf="test.TestDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
-                            <img *ngIf="test.TestDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+                            <img *ngIf="test.TestDataSetIds.indexOf(data.Id) != -1" src="/assets/gfx/radio-icon-selected.png" class="radio-icon">
+                            <img *ngIf="test.TestDataSetIds.indexOf(data.Id) == -1" src="/assets/gfx/radio-icon.png" class="radio-icon">
                             Test
                         </div>
                     </div>

@@ -24,6 +24,7 @@ namespace DataHub.Models
         public int TestId { get; set; }
         public System.DateTime CreatedDate { get; set; }
         public int ModelId { get; set; }
+        public string ModelFileName { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Classification> Classification { get; set; }
