@@ -4,12 +4,12 @@ from Models.train_helpers import equal_size_train, merge_trains
 import numpy as np
 
 
-def get_features_from_shots(data, labels, feature_method="shot_stats"):
+def get_features_from_shots(data, labels, model_name, feature_method="shot_stats"):
     print "len of train_set: {}".format(len(data))
     is_label_iterable = len(np.array(labels).shape) > 1
     label_dict = {}
     if len(data) is not len(labels):
-        raise ValueError("Add a label for each path")
+        raise ValueError("Add a label for each train set")
     for i in xrange(len(data)):
         shots = data[i].shots
         label_list = labels[i]
@@ -17,7 +17,7 @@ def get_features_from_shots(data, labels, feature_method="shot_stats"):
             label = ''.join(str(nr) for nr in label_list)
         else:
             label = str(labels[i])
-        train = make_features(shots, feature_method)
+        train = make_features(shots, feature_method, model_name)
         if label not in label_dict:
             label_dict[label] = Pred_set(train, label_list)
         else:

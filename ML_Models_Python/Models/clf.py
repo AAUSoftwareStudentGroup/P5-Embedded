@@ -5,6 +5,7 @@ from keras import optimizers
 from keras.callbacks import EarlyStopping
 from sklearn import svm
 from sklearn.utils import shuffle
+from Data_Processing.history_plot import plot_history
 
 class Clf_base:
     def __init__(self, name):
@@ -14,11 +15,12 @@ class Clf_base:
 # TODO find a way to specify learning rate
 class ANN(Clf_base):
     # make parameters here
+    # tpdp edit and test this
     def __init__(self, name, shape, output_shape, activation_function="sigmoid", hidden_activations=("sigmoid"), output_activation="softmax",
                  hidden_layers=(50), loss_function='categorical_crossentropy'):
         Clf_base.__init__(self, name)
         self.clf = Sequential()
-        self.clf.add(Dense(input_dim=shape[0], output_dim=output_shape, activation=activation_function))
+        self.clf.add(Dense(input_shape=shape[0], output_dim=output_shape, activation=activation_function))
         # For a mean squared error regression problem
         if not isinstance(hidden_layers, int):
             for i in xrange(len(hidden_layers)):
@@ -26,7 +28,7 @@ class ANN(Clf_base):
                     raise ValueError("Plz specify an activation function for each hidden layer")
                 elif len(hidden_layers) < len(hidden_activations):
                     raise ValueError("There must be a hidden layer for each hidden activation function") 
-                self.clf.add(Dense(hidden_layers[i], activation=hidden_activations[i]))
+                self.clf.add(Dense(hidden_layers[i].strip(), activation=str(hidden_activations[i])).strip())
         #self.clf.add(Dropout(0.4))
         self.clf.add(Dense(output_shape, activation=output_activation))
         optim = optimizers.RMSprop(lr = 0.01)
@@ -43,42 +45,29 @@ class ANN(Clf_base):
 # keras docs https://keras.io/getting-started/faq/
 # unit_forget_bias: Boolean. If True, add 1 to the bias of the forget gate at initialization. Setting it to true will also force bias_initializer="zeros". 
 # TODO: make statefull RNN that can't be shuffled
+# output_shape has been edited from that of the tested
 class RNN(Clf_base):
-    # make parameters here
+    # stack lstms again :3
     def __init__(self, name, shape, output_shape, activation_function="sigmoid", hidden_activations=("sigmoid"), output_activation="softmax",
-                 hidden_layers=(50), loss_function='categorical_crossentropy', dropout=True, statefull=False):
+                 hidden_layers=(50), loss_function='categorical_crossentropy', dropout=True):
         Clf_base.__init__(self, name)
         self.clf = Sequential()
-        # get output length as parameter
-        if not statefull:
-            self.clf.add(LSTM(shape[1], input_shape=(shape), unit_forget_bias=True))
-        else:
-            # batch input takes batch size as first input
-            self.clf.add(LSTM(shape[1], batch_input_shape=(1, shape[0], shape[1]), unit_forget_bias=True))
-        if not isinstance(hidden_layers, int):
-            for i in xrange(len(hidden_layers)):
-                if len(hidden_layers) > len(hidden_activations):
-                    raise ValueError("Plz specify an activation function for each hidden layer")
-                elif len(hidden_layers) < len(hidden_activations):
-                    raise ValueError("There must be a hidden layer for each hidden activation function") 
-                self.clf.add(Dense(hidden_layers[i], activation=hidden_activations[i]))
-        if dropout:
-            self.clf.add(Dropout(0.1))
+        self.clf.add(LSTM(hidden_layers[0], input_shape=(shape), unit_forget_bias=True, use_bias=True, bias_initializer='zeros'))
+        for i in xrange(len(hidden_layers)):
+            if len(hidden_layers) > len(hidden_activations):
+                raise ValueError("Plz specify an activation function for each hidden layer")
+            elif len(hidden_layers) < len(hidden_activations):
+                raise ValueError("There must be a hidden layer for each hidden activation function") 
+            self.clf.add(Dense(hidden_layers[i], activation=str(hidden_activations[i]).strip()))
         self.clf.add(Dense(output_shape, activation=output_activation))
         optim = optimizers.RMSprop(lr=0.01)
-        self.clf.compile(optimizer=optim, loss=loss_function,metrics=['accuracy'])
+        self.clf.compile(optimizer=optim, loss=loss_function, metrics=['accuracy'])
 
-    def learn(self, train, labels, monitor="loss", epochs=1000, batch_size=2, statefull=False):
-        # shuffle data in unison
-        if not statefull:
-            train, labels = shuffle(train, labels, random_state=5)
-            early_stopping = EarlyStopping(monitor=monitor, patience=3, verbose=0, mode='auto')
-            self.clf.fit(train, labels, epochs=epochs, batch_size=batch_size, validation_split=0.2, verbose=2, callbacks=[early_stopping], shuffle= True)
-        else:
-            for i in xrange(epochs):
-                early_stopping = EarlyStopping(monitor=monitor, patience=3, verbose=0, mode='auto')
-                self.clf.fit(train, labels, epochs=1, batch_size=1, verbose=2, callbacks=[early_stopping], shuffle= True)
-                self.clf.reset_states()
+    def learn(self, train, labels, monitor="loss", epochs=1000, batch_size=10):
+        train, labels = shuffle(train, labels, random_state=7)
+        early_stopping = EarlyStopping(monitor=monitor, patience=10, verbose=0, mode='auto')
+        history = self.clf.fit(train, labels, epochs=int(epochs), batch_size=int(batch_size), validation_split=0.2, verbose=2, callbacks=[early_stopping], shuffle= True)
+        plot_history(history)
 
 
 class SVM(Clf_base):
@@ -99,15 +88,16 @@ class LR(Clf_base):
         Clf_base.__init__(self, name)
         self.clf = Sequential()
         self.clf.add(Dense(input_dim=shape[0], output_dim=output_shape, activation='softmax'))
-        self.clf.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+        self.clf.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    def learn(self, train, labels, epochs=1000, monitor="loss", earlystopping=False):
-        train, labels = shuffle(train, labels, random_state=0)
+    def learn(self, train, labels, epochs=1000, monitor="loss", earlystopping=True):
+        train, labels = shuffle(train, labels, random_state=4)
         if earlystopping:
             early_stopping = EarlyStopping(monitor=monitor, patience=3, verbose=0, mode='auto') 
-            self.clf.fit(train, labels, validation_split=0.2, epoch=epochs, callbacks=[early_stopping])
+            history = self.clf.fit(train, labels, validation_split=0.2, epochs=epochs, callbacks=[early_stopping])
         else:
-            self.clf.fit(train, labels, epochs=epochs)
+            history = self.clf.fit(train, labels, epochs=epochs)
+        plot_history(history)
 
 
 def create_classifier(argument, parameters, input_shape, output_shape):

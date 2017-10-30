@@ -3,15 +3,25 @@
 
 def filter_params(argument, param_dict):
     argument = argument
+    hidden_layers_arg = "hidden_layers"
+    if hidden_layers_arg in param_dict:
+        hidden_layers_string = param_dict[hidden_layers_arg]
+        param_dict[hidden_layers_arg] = tuple(map(int, hidden_layers_string.split(",")))
+    # todo this
+    hidden_activations_arg = "hidden_activations"
+    if hidden_activations_arg in param_dict:
+        hidden_activations_string = param_dict[hidden_activations_arg]
+        param_dict[hidden_activations_arg] = tuple(hidden_activations_string.split(","))
+
     if argument == "ann":
-        nn_init_param_names = ["activation_function", "hidden_activations", "output_activation", "hidden_layers", "loss_function", "statefull"]
+        nn_init_param_names = ["activation_function", "hidden_activations", "output_activation", "hidden_layers", "loss_function"]
         nn_learn_param_names = ["epochs", "batch_size"]
 
         return filter_specific_params(param_dict, nn_init_param_names, nn_learn_param_names)
 
     elif argument == "rnn":
-        rnn_init_param_names = ["activation_function", "hidden_activations", "output_activation", "hidden_layers", "loss_function", "statefull"]
-        rnn_learn_param_names = ["epochs", "batch_size", "statefull"]
+        rnn_init_param_names = ["activation_function", "hidden_activations", "output_activation", "hidden_layers", "loss_function"]
+        rnn_learn_param_names = ["epochs", "batch_size"]
 
         return filter_specific_params(param_dict, rnn_init_param_names, rnn_learn_param_names)
 

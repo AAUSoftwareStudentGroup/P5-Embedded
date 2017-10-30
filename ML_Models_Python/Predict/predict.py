@@ -20,7 +20,7 @@ def ANN_predict(shots, labels, init_param, learn_param):
 
 
 def RNN_predict(shots, labels, init_param, learn_param):
-    shots = np.reshape(shots, (shots.shape[0], 1, shots.shape[1]))
+    #shots = np.reshape(shots, (shots.shape[0], 1, shots.shape[1]))
     clf = create_classifier_helper("RNN", init_param, shots.shape[1:], labels.shape[1])
     teach_model(clf, shots, labels, learn_param)
     return clf
@@ -37,6 +37,7 @@ def LR_predict(shots, labels, init_param, learn_param):
     teach_model(clf, shots, labels, learn_param)
     return clf
 
+
 class Classifications:
     def __init__(self, preds):
         self.preds = preds
@@ -51,15 +52,13 @@ def create_confidence_labels(label_probas, label_dict):
 
 
 # instead of label_dict then use clf.classes_ this will work with scikit check if it works with keras
-def predict_tests(clf, tests, model_name, label_dict, labelkind):
+def predict_tests(clf, tests, label_dict, labelkind):
     preds = []
     # check if keras got this aswell
     if labelkind == LabelKind.Ordinary:
         label_dict = clf.classes_
     for i in xrange(len(tests)):
         test_data = tests[i]
-        if model_name.lower() == 'rnn':
-            test_data = np.reshape(test_data, (test_data.shape[0], 1, test_data.shape[1]))
         pred_probabilities = clf.predict_proba(test_data)
         mean_shot_probability = np.mean(pred_probabilities, axis = 0)
         print "mean_shot"

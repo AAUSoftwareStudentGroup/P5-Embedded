@@ -5,12 +5,18 @@ from Feature_Extraction.get_stats_from_shots import make_statistic_features
 from sklearn.preprocessing import StandardScaler
 
 
-def make_features(shots, input_arg):
-    subset_shots_data = convert_to_np_array(shots)
-    f = get_feature_method(input_arg)
-    result = f(subset_shots_data)
-    scaler = StandardScaler()
-    return scaler.fit(result).transform(result)
+def make_features(shots, input_arg, model_name):
+    if model_name == 'rnn':
+        result = squash_shots(shots)
+        result =  np.array(result)
+        # rescale this
+        return result
+    if not model_name == 'rnn':
+        subset_shots_data = convert_to_np_array(shots)
+        f = get_feature_method(input_arg)
+        result = f(subset_shots_data)
+        scaler = StandardScaler()
+        return scaler.fit(result).transform(result)
 
 
 def k_groups(shots):
@@ -38,3 +44,16 @@ def get_feature_method(argument):
     func = mappings.get(argument, lambda: "nothing")
     # Execute the function
     return func
+
+
+# shape [length_shots, 10, 4]
+def squash_shots(shots):
+    segments = []
+    for shot in shots:
+        segment = np.zeros((10, 4))
+        for i in xrange(10):
+            segment[i] = np.array([shot['x'][i], shot['y'][i], shot['z'][i], shot['rx'][i]])
+        scaler = StandardScaler()
+        segment = scaler.fit(segment).transform(segment)
+        segments.append(segment)
+    return segments

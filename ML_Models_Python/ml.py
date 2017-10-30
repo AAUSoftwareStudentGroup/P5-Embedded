@@ -10,6 +10,27 @@ from Api_communication.load_json import load_json
 from Data_Classes.classes import LabelKind
 from Data_Processing.generate_labels import generate_labels
 from Data_Processing.filter_params import filter_params
+from keras.utils import plot_model
+import sys
+
+
+def extract_weights(clf):
+    count = 0
+    count_layer = len(clf.layers)
+    for c, layer in enumerate(clf.layers):
+        if c == 0:
+            print "lstm weights"
+            print layer.get_weights()[0].shape[1]
+            print layer.get_weights()[0].shape
+
+            print "done"
+        weights = layer.get_weights()[0]
+        count = count + (weights.shape[0] * weights.shape[1])
+
+    print "layer"
+    print count_layer
+    print "weights"
+    print count
 
 
 def get_ml_func(argument):
@@ -25,15 +46,12 @@ def get_ml_func(argument):
     return mappings.get(argument, lambda: "nothing")
 
 
-def IdentifyPlayer():
-    if not __name__ == "__main__":
-        raise ValueError("This method should only be called from main")
-
-    data = load_json()
+def IdentifyPlayer(modeltype_str):
+    data = load_json(modeltype_str)
     labels = data.label_names
 
     # read this in load json at a later point
-    model_name = data.model_type_name.lower()
+    model_name = data.model_type_name.split()[0].lower()
 
     if model_name == "":
         raise "ValueError: does not know this model type name"
@@ -43,7 +61,7 @@ def IdentifyPlayer():
 
     new_labels, unique_labels = generate_labels(labels, model_dict[model_name])
 
-    result = get_features_from_shots(data.trainSetData, new_labels)
+    result = get_features_from_shots(data.trainSetData, new_labels, model_name)
 
     tests = data.testSetData
 
@@ -56,12 +74,12 @@ def IdentifyPlayer():
     clf = ml_strat.execute(result[0], result[1], init_params, train_params)
 
     # process the accelerometer and gyroscope data and split into movements
-    tests_data = create_tests(tests)
+    tests_data = create_tests(tests, model_name)
 
     # contains the probability for each person
     preds = None
 
-    preds = predict_tests(clf.clf, tests_data, model_name, unique_labels, model_dict[model_name])
+    preds = predict_tests(clf.clf, tests_data, unique_labels, model_dict[model_name])
 
     description = generate_description(model_name, data.parameters)
 
@@ -75,23 +93,29 @@ def IdentifyPlayer():
 
     print response
 
+    extract_weights(clf.clf)
+
     save = False
 
-    name = "{}_{}_{}.pkl".format(data.model_type_name, data.id, data.model_id)
+    name = "{}_{}_{}".format(data.model_type_name, data.id, data.model_id)
     if save:
         if (model_name == 'ann') or (model_name == 'rnn'):
-            execute_save_method("keras", clf, name)
+            execute_save_method("keras", clf.clf, name)
+            print "model saved"
+            sys.exit()
         elif model_name == 'svm':
-            execute_save_method("sklearn", clf, name)
+            execute_save_method("sklearn", clf.clf, name)
 
-    to_send = raw_input("send request? (y/n)")
+    visualize_model = False
+    if visualize_model:
+        plot_model(clf.clf, to_file='model_RNN_1_6.png', show_layer_names=False, show_shapes=False)
+        print "model has been "
+        print "plz terminate"
+        sys.exit()
+    #user_input = raw_input("send y/n?")
+    to_send = "y"
 
     if to_send == "y":
         headers = {'content-type': 'application/json'}
         post_response = requests.post("https://p5datahub.azurewebsites.net/api/test/{}/result".format(data.id), data= response, headers=headers)
         print post_response
-
-
-#this should be set up elsewhere but ok here for now
-
-IdentifyPlayer()
