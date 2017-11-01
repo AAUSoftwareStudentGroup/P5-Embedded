@@ -8,6 +8,7 @@ using Encog.Neural.Networks.Layers;
 using Encog.Neural.Networks.Training.Propagation.Resilient;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -169,6 +170,29 @@ namespace DataHub.Client.NeuralNetwork
 
                 Console.WriteLine(testSet.Name + ": " + string.Join(" ", confidence.Select(c => Math.Round(c * 100) / 100)));
             }
+            FileInfo networkFile = new FileInfo($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}.eg");
+            Encog.Persist.EncogDirectoryPersistence.SaveObject(networkFile, (BasicNetwork)network);
+
+            List<string> lines = new List<string>();
+            List<List<List<double>>> layers = new List<List<List<double>>>();
+            for (int l = 0; l < network.LayerCount - 1; l++)
+            {
+                List<List<double>> layerWeights = new List<List<double>>();
+                for (int from = 0; from < network.GetLayerNeuronCount(l); from++)
+                {
+                    List<double> weights = new List<double>();
+                    for (int to = 0; to < network.GetLayerNeuronCount(l + 1); to++)
+                    {
+                        weights.Add(network.GetWeight(l, from, to));
+                    }
+                    layerWeights.Add(weights);
+                    lines.Add(string.Join(" ", weights.Select(w => w.ToString())));
+                }
+                lines.Add("#");
+                layers.Add(layerWeights);
+            }
+
+            File.WriteAllLines($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}.txt", lines);
 
             return new TestResult()
             {
