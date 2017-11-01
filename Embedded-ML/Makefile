@@ -1,7 +1,7 @@
 all: main
 
-main: main.c
-	gcc main.c -o main
+main: main.c GetNetworkFromFile.c EvaluateNetwork.c
+	gcc -g -O0 main.c -o main
 
 clean:
 	rm main
