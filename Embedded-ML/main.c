@@ -1,5 +1,7 @@
-#include "GetNetworkFromFile.c"
-#include "EvaluateNetwork.c"
+//#include "GetNetworkFromFile.c"
+#include "EvaluateNetwork.h"
+#include "parseEncog.h"
+#include "ShotIdentifier.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,49 +9,33 @@
 void GetInputFromFile(char*, double*);
 
 int main() {
-	printf("Allocating variables\n");
-	double** layerWeights = malloc(sizeof(double*));
-	int* layerSizes = malloc(sizeof(int)*10);
-	double* output = malloc(sizeof(double));
-	int outputSize = 40;
-	int layers = -1;
+	//GetInputFromFile("input.csv", input);
+	group* g;
+	int g_len;
+	ReadGroupedData("antonvsmorten.csv", &g, &g_len);
+	// ReadGroupedData("107shots.csv", &g, &g_len);
+	// ReadGroupedData("MORTEN-anton-z-steffan-grunberg-z.csv", &g, &g_len);
+	network ann = parseEncogModel("Test-120-Model-128-encog.txt");
 	
-	// double input[40];// = malloc(sizeof(double)*40);
-	double* input = malloc(sizeof(double)*40);
-	double** inputP = (double**)&input;
-	
-	printf("GetInputFromFile\n");
+	double anton = 0;
+	double morten = 0;
 
-	for(int i = 0; i < outputSize; i++) {
-		input[i] = 1;
+	group* group;
+	for(group = g; group < g+g_len; group++) {
+		layer* l = EvaluateNetwork(*group, ann);
+		anton += l->nodes[0].val;
+		morten += l->nodes[1].val;
 	}
+	anton  /= g_len;
+	morten /= g_len;
 
-	GetInputFromFile("input.csv", input);
-	
+	printf("Morten: %lf\nAnton: %lf\n", morten, anton);
 
-	printf("GetNetworkFromFile\n");
-	GetNetworkFromFile("Test-120-Model-128-encog.txt", layerWeights, layerSizes, &layers);
-	
-	for(int layer = 0; layer < layers;layer++ ) {
-		for(int layerIndex = 0; layerIndex < layerSizes[layer]; layerIndex++) {
-			for(int layerIndex2 = 0; layerIndex2 < layerSizes[layer+1]; layerIndex2++) {
-				printf("layerWeight %i, %i, %i: %lf\n",layer, layerIndex, layerIndex2, layerWeights[layer][layerIndex*layerSizes[layer]+layerIndex2]);
-			}
-		}
-	}
-	output = EvaluateNetwork(layerWeights, layerSizes, layers, input);
-
-	// Print network output
-	for(int i = 0; i < outputSize; i++) {
-		printf("%.1f ", input[i]);
-	}
-	printf("\n");
 
 	return 0;
 }
 
 void GetInputFromFile(char* inputFilePath, double* input) {
 	FILE* inputFile = fopen(inputFilePath, "r");
-	int i = 0;
-	while( fscanf(inputFile, "%lf;", &(input[i]) ) && feof(inputFile) != 0);
+	for(int i = 0; fscanf(inputFile, "%lf;", &(input[i]) ) && feof(inputFile) != 0;i ++);
 }

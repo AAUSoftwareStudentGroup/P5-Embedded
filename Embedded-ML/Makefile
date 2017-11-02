@@ -1,7 +1,7 @@
 all: main
 
-main: main.c GetNetworkFromFile.c EvaluateNetwork.c
-	gcc -g -O0 main.c -o main
+main: main.c ShotIdentifier.c EvaluateNetwork.c parseEncog.c
+	gcc -g -O0 main.c ShotIdentifier.c EvaluateNetwork.c parseEncog.c -o main -lm
 
 clean:
 	rm main

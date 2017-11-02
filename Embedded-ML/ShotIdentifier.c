@@ -1,60 +1,19 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "ShotIdentifier.h"
 
-typedef struct _datapoint
-{
-	double T;
-	double X;
-	double Y;
-	double Z;
-	double RX;
-	double RY;
-	double RZ;
-} datapoint;
+void ReadGroupedData(char* filePath, group** shots, int* shots_len){
+	FILE *ifp = fopen(filePath, "r");
 
-const int _T = 0;
-const int _X = 1;
-const int _Y = 2;
-const int _Z = 3;
-const int _RX = 4;
-const int _RY = 5;
-const int _RZ = 6;
-
-typedef struct _group
-{
-	int length;
-	datapoint* datapoints;
-} group;
-
-
-void downscaleAndGroupData(int* data, int n_data, group** shots, int* shots_len);
-void _downscale(int* data, int n_data, datapoint** average, int* average_len);
-void _groupData(datapoint* data, int n_data, group** groups, int* groups_len);
-
-int main(int argc, const char * argv[]){
-	FILE *ifp = fopen("MORTEN-anton-z-steffan-grunberg-z.csv", "r");
-
-    int dataArray[7*50000];
+    int* dataArray = malloc(sizeof(int)*7*3552000);
 
     // read first line, as it includes headers
-    fscanf(ifp, "%*[^\n]\n", NULL);
+    fscanf(ifp, "%*[^\n]\n");
 
-    for(int i = 0; i < 50000; i++){
+    for(int i = 0; i < 3552000; i++){
         fscanf(ifp, "%d;%d;%d;%d;%d;%d;%d",
             &dataArray[7*i],&dataArray[(7*i)+1],&dataArray[(7*i)+2],&dataArray[(7*i)+3],&dataArray[(7*i)+4],&dataArray[(7*i)+5],&dataArray[(7*i)+6] );
     }
 
-    group* shots;
-    int shots_len;
-
-    downscaleAndGroupData(dataArray, 50000, &shots, &shots_len);
-
-    for (int l = 0; l < shots_len; l++)
-    {
-        printf("Group: %d: T: %lf, G_L: %d, X: %lf, Y: %lf, Z: %lf, RX: %lf \n", l, shots[l].datapoints[0].T, shots[l].length, shots[l].datapoints[0].X, shots[l].datapoints[0].Y, shots[l].datapoints[0].Z, shots[l].datapoints[0].RX);
-    }
-
-    return 0;
+    downscaleAndGroupData(dataArray, 3552000, shots, shots_len);
 }
 
 void downscaleAndGroupData(int* data, int n_data, group** shots, int* shots_len) {
@@ -121,21 +80,23 @@ void _groupData(datapoint* data, int n_data, group** groups, int* groups_len) {
         if(measuring){
             g.length++;
         }
-        if(((data[k].RX < 5000) || (data[k].RX > -5000))){
-            zeroStreak++;
-            if(zeroStreak == 10){
-                (*groups)[*groups_len] = g;
-                (*groups_len)++;
-                
-                measuring = 0;
+        if(data[k].RX < 5000 && data[k].RX > -5000){
+            if(measuring == 1) {
+                zeroStreak++;
+                if(zeroStreak == 10){
+                    (*groups)[*groups_len] = g;
+                    (*groups_len)++;
+                    
+                    measuring = 0;
+                }
             }
         } else {
             if(measuring == 0) {
-	            g.length = 0;
-	            g.datapoints = &data[k];
+                g.length = 0;
+                g.datapoints = &data[k];
+                measuring = 1;
             }
             zeroStreak = 0;
-            measuring = 1;
         }
     }
 }
