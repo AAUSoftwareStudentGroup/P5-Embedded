@@ -26,41 +26,13 @@ void setup() {
 void loop() {
   double input[40];// = {-117.45/2000,-595/2000,-1948.9/2000,4175.3/10000,484.9/2000,-655.3/2000,-2037.05/2000,621.25/10000,373.5/2000,-579.25/2000,-2065.95/2000,174.3/10000,21.95/2000,-529.4/2000,-2023.6/2000,729.2/10000,-63.6/2000,-716.6/2000,-1979.35/2000,76/10000,-191.5/2000,-708.9/2000,-1990.45/2000,590.55/10000,-91.45/2000,-859.9/2000,-1899.55/2000,-1227.95/10000,71.45/2000,-422.95/2000,-2084.75/2000,-2760.85/10000,121.7/2000,-418.3/2000,-2103.3/2000,247.75/10000,-9.7/2000,-496.1/2000,-1958/2000,-702.25/10000};
   double output[2];
-  readInput2(input, network.neuronCount[0]);
+  readInput(input, network.neuronCount[0]);
   compute(network, input, output);
   for(int i = 0; i < 8; i++)
     Serial.write(*((byte*)output + i));
-  //Serial.write((byte*)(ouput[0]))
-  //Serial.println(output[0]);
-  //Serial.println(output[1]);
-}
-
-void getInput(double input[], int inputCount) {
-  for(int i = 1; i <= inputCount; i++) {
-    byte bytes[2];
-    while(!Serial.available());
-    bytes[1] = Serial.read();
-    while(!Serial.available());
-    bytes[0] = Serial.read();
-    int16_t val = *((int16_t*)bytes);
-    if(i % 4 == 0)
-      input[i] = val / 10000.0;
-    else
-      input[i] = val / 2000.0;
-    //Serial.println(input[i]);
-  }
 }
 
 void readInput(double input[], int inputCount) {
-  for(int i = 0; i < inputCount; i++) {
-    while(!Serial.available());
-    input[i] = Serial.parseFloat();
-    while(Serial.read() != '\n');
-    Serial.println(input[i]);
-  }
-}
-
-void readInput2(double input[], int inputCount) {
   for(int i = 0; i < inputCount; i++) {
     byte bytes[4];
     while(Serial.available() < 4);
@@ -69,7 +41,6 @@ void readInput2(double input[], int inputCount) {
     bytes[2] = Serial.read();
     bytes[3] = Serial.read();
     input[i] = *((float*)bytes);
-    //Serial.write('\n');
   }
 }
 
