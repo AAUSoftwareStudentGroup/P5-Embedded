@@ -1,5 +1,8 @@
+#include <I2Cdev.h>
 #include <SPI.h>
 #include <Wire.h>
+
+//#include "Adafruit_GFX.h"
 #include "Adafruit_SSD1306.h"
 
 // If using software SPI (the default case):
@@ -21,6 +24,7 @@ void setup() {
   display.setTextSize(1);
   display.setTextColor(WHITE);
 }
+
 
 void loop() { 
   display.clearDisplay();

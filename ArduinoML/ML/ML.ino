@@ -92,5 +92,3 @@ void compute(Network network, double input[], double output[]) {
     output[i] = tempOut[i];
   }
 }
-
-
