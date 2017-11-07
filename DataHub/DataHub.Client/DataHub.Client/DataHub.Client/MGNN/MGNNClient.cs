@@ -16,13 +16,15 @@ using System.Threading.Tasks;
 
 namespace DataHub.Client.NeuralNetwork
 {
-    public class NNClient : DataHubClient
+    public class MGNNClient : DataHubClient
     {
-        public NNClient() : base("NN encog 1.1")
-        {   }
+        public MGNNClient() : base("MGNN encog 1.2")
+        { }
 
         private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
         {
+            int groupCount = int.Parse(testInfo.Parameters.First(pa => pa.Name == "Groups").Value);
+
             List<double[]> inputs = new List<double[]>();
             List<double[]> outputs = new List<double[]>();
 
@@ -32,26 +34,26 @@ namespace DataHub.Client.NeuralNetwork
 
             foreach (var key in trainData.Keys)
             {
-                var prevGroup = trainData[key].FirstOrDefault();
-                foreach (var group in trainData[key])
+                for (int g = groupCount; g < trainData[key].Count; g++)
                 {
                     List<double> input = new List<double>();
 
-                    double timeDiff = (group.Data.First().Time - prevGroup.Data.Last().Time) / 2000;
-                    input.Add(timeDiff);
-                    foreach (var data in group.Data.Take(10))
+                    for (int l = groupCount - 1; l >= 0; l--)
                     {
-                        input.Add(data.X / 2000);
-                        input.Add(data.Y / 2000);
-                        input.Add(data.Z / 2000);
-                        input.Add(data.RX / 10000);
+                        input.Add((trainData[key][g - l].Data.First().Time - trainData[key][g - l - 1].Data.Last().Time) / 10000);
+                        foreach (var data in trainData[key][g - l].Data.Take(10))
+                        {
+                            input.Add(data.X / 2000);
+                            input.Add(data.Y / 2000);
+                            input.Add(data.Z / 2000);
+                            input.Add(data.RX / 10000);
+                        }
                     }
 
                     double[] output = new double[trainData.Keys.Count];
                     output[i] = 1;
                     inputs.Add(input.ToArray());
                     outputs.Add(output);
-                    prevGroup = group;
                 }
 
                 i++;
@@ -93,7 +95,10 @@ namespace DataHub.Client.NeuralNetwork
 
             // intialise network and create first layer
             var network = new BasicNetwork();
-            network.AddLayer(new BasicLayer(null, true, 41));
+
+            int groupCount = int.Parse(testInfo.Parameters.First(pa => pa.Name == "Groups").Value);
+
+            network.AddLayer(new BasicLayer(null, true, 41 * groupCount));
 
             // assuming the four arrays are of same length, perhaps make a check for this
             // add layers corresponding to parameter input
@@ -133,30 +138,28 @@ namespace DataHub.Client.NeuralNetwork
                 double[] confidence = new double[testInfo.Labels.Length];
                 int no = 0;
 
-                var prevGroup = testSet.Data.FirstOrDefault();
-
-                foreach (var group in testSet.Data)
+                for (int g = groupCount; g < testSet.Data.Length; g++)
                 {
-                    if (group.Data.Length >= 10)
+                    List<double> input = new List<double>();
+
+                    for (int l = groupCount - 1; l >= 0; l--)
                     {
-                        double timeDiff = (group.Data.First().Time - prevGroup.Data.Last().Time) / 2000;
-                        List<double> input = new List<double>();
-                        input.Add(timeDiff);
-                        foreach (var d in group.Data.Take(10))
+                        input.Add((testSet.Data[g - l].Data.First().Time - testSet.Data[g - l - 1].Data.Last().Time) / 10000);
+                        foreach (var data in testSet.Data[g - l].Data.Take(10))
                         {
-                            input.Add(d.X / 2000);
-                            input.Add(d.Y / 2000);
-                            input.Add(d.Z / 2000);
-                            input.Add(d.RX / 10000);
+                            input.Add(data.X / 2000);
+                            input.Add(data.Y / 2000);
+                            input.Add(data.Z / 2000);
+                            input.Add(data.RX / 10000);
                         }
-                        var output = network.Compute(new BasicMLData(input.ToArray()));
-                        for (int n = 0; n < output.Count; n++)
-                        {
-                            confidence[n] += output[n];
-                        }
-                        no++;
-                        prevGroup = group;
                     }
+
+                    var output = network.Compute(new BasicMLData(input.ToArray()));
+                    for (int n = 0; n < output.Count; n++)
+                    {
+                        confidence[n] += output[n];
+                    }
+                    no++;
                 }
 
                 confidence = confidence.Select(c => c / no).ToArray();

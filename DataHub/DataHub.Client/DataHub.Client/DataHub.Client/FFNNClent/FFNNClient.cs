@@ -1,6 +1,7 @@
 ﻿using DataHub.Grouping;
 using DataHub.Messages;
 using Encog.Engine.Network.Activation;
+using Encog.ML.Data;
 using Encog.ML.Data.Basic;
 using Encog.ML.Train;
 using Encog.Neural.Networks;
@@ -8,7 +9,6 @@ using Encog.Neural.Networks.Layers;
 using Encog.Neural.Networks.Training.Propagation.Resilient;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,10 +16,10 @@ using System.Threading.Tasks;
 
 namespace DataHub.Client.NeuralNetwork
 {
-    public class NNClient : DataHubClient
+    public class FFNNClient : DataHubClient
     {
-        public NNClient() : base("NN encog 1.1")
-        {   }
+        public FFNNClient() : base("FFNN encog 1.0")
+        { }
 
         private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
         {
@@ -30,15 +30,14 @@ namespace DataHub.Client.NeuralNetwork
 
             Console.WriteLine("Converting");
 
+            Random rnd = new Random();
+
             foreach (var key in trainData.Keys)
             {
-                var prevGroup = trainData[key].FirstOrDefault();
                 foreach (var group in trainData[key])
                 {
                     List<double> input = new List<double>();
 
-                    double timeDiff = (group.Data.First().Time - prevGroup.Data.Last().Time) / 2000;
-                    input.Add(timeDiff);
                     foreach (var data in group.Data.Take(10))
                     {
                         input.Add(data.X / 2000);
@@ -47,19 +46,26 @@ namespace DataHub.Client.NeuralNetwork
                         input.Add(data.RX / 10000);
                     }
 
+                    foreach (var label in testInfo.Labels)
+                    {
+                        double labelConf = rnd.Next(6000, 10000) / 10000.0;
+                        double otherConf2 = rnd.Next(0, 6000) / 10000.0;
+                        if (label.Id == key)
+                            input.Add(labelConf);
+                        else
+                            input.Add(otherConf2);
+                    }
+
                     double[] output = new double[trainData.Keys.Count];
                     output[i] = 1;
                     inputs.Add(input.ToArray());
                     outputs.Add(output);
-                    prevGroup = group;
                 }
 
                 i++;
             }
 
             List<double> randomSequence = new List<double>();
-
-            Random rnd = new Random();
 
             for (int w = 0; w < 10000; w++)
             {
@@ -93,7 +99,7 @@ namespace DataHub.Client.NeuralNetwork
 
             // intialise network and create first layer
             var network = new BasicNetwork();
-            network.AddLayer(new BasicLayer(null, true, 41));
+            network.AddLayer(new BasicLayer(null, true, 40 + testInfo.Labels.Length));
 
             // assuming the four arrays are of same length, perhaps make a check for this
             // add layers corresponding to parameter input
@@ -133,15 +139,13 @@ namespace DataHub.Client.NeuralNetwork
                 double[] confidence = new double[testInfo.Labels.Length];
                 int no = 0;
 
-                var prevGroup = testSet.Data.FirstOrDefault();
+                IMLData lastOutput = new BasicMLData(testInfo.Labels.Select(l => 1.0 / testInfo.Labels.Length).ToArray());
 
                 foreach (var group in testSet.Data)
                 {
                     if (group.Data.Length >= 10)
                     {
-                        double timeDiff = (group.Data.First().Time - prevGroup.Data.Last().Time) / 2000;
                         List<double> input = new List<double>();
-                        input.Add(timeDiff);
                         foreach (var d in group.Data.Take(10))
                         {
                             input.Add(d.X / 2000);
@@ -149,13 +153,19 @@ namespace DataHub.Client.NeuralNetwork
                             input.Add(d.Z / 2000);
                             input.Add(d.RX / 10000);
                         }
+
+                        for (int i = 0; i < lastOutput.Count; i++)
+                        {
+                            input.Add(lastOutput[i]);
+                        }
+
                         var output = network.Compute(new BasicMLData(input.ToArray()));
+                        lastOutput = output;
                         for (int n = 0; n < output.Count; n++)
                         {
                             confidence[n] += output[n];
                         }
                         no++;
-                        prevGroup = group;
                     }
                 }
 
@@ -180,29 +190,6 @@ namespace DataHub.Client.NeuralNetwork
 
                 Console.WriteLine(testSet.Name + ": " + string.Join(" ", confidence.Select(c => Math.Round(c * 100) / 100)));
             }
-            FileInfo networkFile = new FileInfo($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}.eg");
-            Encog.Persist.EncogDirectoryPersistence.SaveObject(networkFile, (BasicNetwork)network);
-
-            List<string> lines = new List<string>();
-            List<List<List<double>>> layers = new List<List<List<double>>>();
-            for (int l = 0; l < network.LayerCount - 1; l++)
-            {
-                List<List<double>> layerWeights = new List<List<double>>();
-                for (int from = 0; from < network.GetLayerNeuronCount(l); from++)
-                {
-                    List<double> weights = new List<double>();
-                    for (int to = 0; to < network.GetLayerNeuronCount(l + 1); to++)
-                    {
-                        weights.Add(network.GetWeight(l, from, to));
-                    }
-                    layerWeights.Add(weights);
-                    lines.Add(string.Join(" ", weights.Select(w => w.ToString())));
-                }
-                lines.Add("#");
-                layers.Add(layerWeights);
-            }
-
-            File.WriteAllLines($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}.txt", lines);
 
             return new TestResult()
             {

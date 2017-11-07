@@ -1,27 +1,30 @@
-#include <I2Cdev.h>
-// #include "MPU6050.h"
+#include "I2Cdev.h"
+#include <SPI.h>
 #include <Wire.h>
 
-#include <WiFiUdp.h>
-#include <ESP8266WiFi.h>
+#include "Adafruit_SSD1306.h"
 
 #define MPU_ADDR 0x68
 
-WiFiUDP client;
-const char* ssid = "Tardis";
-const char* password = "geronimo";
-int state = 0;
-int stillConnected = 1;
+#define OLED_MOSI  4
+#define OLED_CLK   5
+#define OLED_DC    0
+#define OLED_CS    2
+#define OLED_RESET 16
+Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+
+#if (SSD1306_LCDHEIGHT != 64)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
 
 int mil;
 int lastMillis;
-IPAddress recieverIP;
-
-int lastread;
 int LED = 16;
 
+int i = 0;
+
 void setup_mpu6050() {
-  Wire.begin(5,4);
+  Wire.begin(14,12);
   mpu6050_setRegister(0x6b, 0);
   mpu6050_setRegister(0x1b, 0b11000);
   mpu6050_setRegister(0x1c, 0b11000);
@@ -51,65 +54,48 @@ void mpu6050_get_data(
 }
 
 void setup() {
-    pinMode(LED, OUTPUT);
-    IPAddress defaultIP = client.remoteIP();
+  display.begin(SSD1306_SWITCHCAPVCC); // No idea what it does, does not work without
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.clearDisplay();
+  display.setCursor(0,0);
 
-    // initialize serial communication for debugging purposes
-    Serial.begin(115200);
-    
-    Serial.print("Joining I2C\n");
-    // join I2C bus
-    setup_mpu6050();
+  display.print("MPU ");
+  display.display();
 
-    // Connect to wifi network
-    WiFi.begin(ssid, password);
-    
-    Serial.print("Connecting to wifi");
-    // Wait for connection
-    while(WiFi.status() != WL_CONNECTED) {
-        Serial.print(".");
-        delay(500);
-        digitalWrite(LED, state++ % 2);
-    }
-    
-    Serial.print("\n");
+  pinMode(LED, OUTPUT);
+  setup_mpu6050();
 
-    // Print the IP address to serial
-    Serial.println(WiFi.localIP());
-
-    lastMillis = millis();
-    //Connect(); // No need to connect when using UDP
-    client.begin(8085);
-    // client.beginPacket(client.remoteIP(), 8085);
-    while(client.remoteIP() == defaultIP) {
-      delay(250);
-      digitalWrite(LED, state++ % 2);
-    }
-    recieverIP = client.remoteIP();
-    lastread = 0;
-    state = 0;
+  display.println(" OK!");
+  display.display();
+  lastMillis = millis();
 }
 
-void loop() {
-  // When receiving packet, reset stillConnected to like 100. If no packet was received in 100 datapoints, turn off LED
-  if(client.parsePacket()) {
-    stillConnected = 50;
-  }
-  client.beginPacket(recieverIP, 8085);
+void loop() { 
+  display.clearDisplay();
+  display.setCursor(0,0);
   mil = millis();
-  client.write((int8_t)(mil - lastMillis));
   lastMillis = mil;
+  
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
   Wire.endTransmission(false);
   Wire.requestFrom((uint8_t)MPU_ADDR,(size_t)14,true);  // request a total of 14 registers
-  client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
-  client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
-  client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
-  Wire.read(); Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-  client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
-  client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
-  client.write(Wire.read()); client.write(Wire.read());  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
-  client.endPacket();
-  digitalWrite(LED, stillConnected-- > 0);
+  
+  display.print("X : ");
+  display.println((signed short)((signed short)Wire.read()<<8 | Wire.read()));  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
+  display.print("Y : ");
+  display.println((signed short)((signed short)Wire.read()<<8 | Wire.read()));  // 0x3B (ACCEL_XOUT_H) | 0x3C (ACCEL_XOUT_L)   
+  display.print("Z : ");
+  display.println((signed short)((signed short)Wire.read()<<8 | Wire.read()));  // 0x3B (ACCEL_XOUT_H) | 0x3C (ACCEL_XOUT_L)   
+  Wire.read(); Wire.read();  // 0x41 (TEMP_OUT_H) | 0x42 (TEMP_OUT_L)
+  display.print("RX: ");
+  display.println((signed short)((signed short)Wire.read()<<8 | Wire.read()));  // 0x3B (ACCEL_XOUT_H) | 0x3C (ACCEL_XOUT_L)   
+  display.print("RY: ");
+  display.println((signed short)((signed short)Wire.read()<<8 | Wire.read()));  // 0x3B (ACCEL_XOUT_H) | 0x3C (ACCEL_XOUT_L)   
+  display.print("RZ: ");
+  display.println((signed short)((signed short)Wire.read()<<8 | Wire.read()));  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)   
+
+  display.println(i++);
+  display.display();
 }

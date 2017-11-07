@@ -253,6 +253,74 @@ namespace DataHub.Controllers
         }
 
         [HttpGet]
+        [Route("api/model/{modelId}/test/{testId}")]
+        public Response<TestInfo> GetTestForModelType(int? modelId, int? testId, string cachedIds = "")
+        {
+            cachedIds = cachedIds ?? "";
+            if (modelId == null || testId == null)
+                return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.InvalidId };
+
+            using (Entities db = new Entities())
+            {
+                try
+                {
+                    var model = db.Model.Where(m => m.IsActive == 1 && m.Id == modelId).FirstOrDefault();
+
+                    if (model == null)
+                        return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
+
+                    var test = db.Test.Where(t => t.IsActive == 1 && t.Id == testId).FirstOrDefault();
+
+                    if (test == null)
+                        return new ErrorResponse<TestInfo>() { ErrorCode = ErrorCode.NoTestsAvailable };
+
+                    string[] cachedIdArray = cachedIds.Split(',');
+
+                    return new Response<TestInfo>()
+                    {
+                        Data = new TestInfo()
+                        {
+                            Id = test.Id,
+                            ModelId = model.Id,
+                            ModelName = model.Name,
+                            ModelTypeName = model.ModelType.Name,
+                            ModelTypeId = model.ModelTypeId,
+                            Labels = test.TestLabel.Select(t => new Messages.Label() { Id = t.LabelId, Name = t.Label.Name }).ToArray(),
+                            Parameters = model.Parameter.Select(p => new Messages.Parameter()
+                            {
+                                Id = p.Id,
+                                Name = p.Property.Name,
+                                PropertyId = p.PropertyId,
+                                Value = p.Value
+                            }).ToArray(),
+                            TestSet = test.TestDataSet.Where(t => t.IsTestSet == 1).Select(t => new Messages.TestDataSet()
+                            {
+                                Id = t.DataSetId,
+                                Name = t.DataSet.Name,
+                                Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new ShotIdentifier().Identify(new DataSetController().GetDataByDataSetId(t.DataSetId).Data).Where(d => d.Data.Length >= 10).ToArray()
+                            }).ToArray(),
+                            TrainingSet = test.TestDataSet.Where(t => t.IsTraningSet == 1).Select(t => new Messages.DataLabelSet()
+                            {
+                                Id = t.DataSetId,
+                                Data = cachedIdArray.Contains(t.DataSetId.ToString()) == true ? null : new ShotIdentifier().Identify(new DataSetController().GetDataByDataSetId(t.DataSetId).Data).Where(d => d.Data.Length >= 10).ToArray(),
+                                Labels = t.DataSet.Mapping.Select(m => new Messages.Label()
+                                {
+                                    Id = m.LabelId,
+                                    Name = m.Label.Name
+                                }).ToArray()
+                            }).ToArray()
+                        }
+                    };
+                }
+                catch (Exception e)
+                {
+                    return new ErrorResponse<TestInfo>() { Data = new TestInfo() { ModelName = e.ToString() } };
+
+                }
+            }
+        }
+
+        [HttpGet]
         [Route("api/modeltype/{id}/test")]
         public Response<TestInfo> GetTestForModelType(string id, string cachedIds = "")
         {
