@@ -36,7 +36,7 @@ datapoint downSampleBuffer[20];
 datapoint shotBuffer[10];
 
 void setup_io() {
-  pinMode(LED, OUTPUT);
+  // pinMode(LED, OUTPUT);
 
   // initialize serial communication for debugging purposes
   Serial.begin(115200);
@@ -46,10 +46,13 @@ void setup_lcd() {
   display.begin(SSD1306_SWITCHCAPVCC); // No idea what it does, does not work without
   display.setTextSize(1);
   display.setTextColor(WHITE);
+
   display.clearDisplay();
   display.setCursor(0,0);
-  display.println("Initialized");
+  display.println("Initialized --- ");
+  display.println("testhest");
   display.display();
+
 }
 
 void setup_wifi() {
@@ -63,7 +66,7 @@ void setup_wifi() {
   while(WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(500);
-    digitalWrite(LED, state++ % 2);
+    // digitalWrite(LED, state++ % 2);
   }
 
   Serial.print("\n");
@@ -77,7 +80,7 @@ void setup_wifi() {
   // client.beginPacket(client.remoteIP(), 8085);
   while(client.remoteIP() == defaultIP) {
     delay(250);
-    digitalWrite(LED, state++ % 2);
+    // digitalWrite(LED, state++ % 2);
   }
   recieverIP = client.remoteIP();
   state = 0;
@@ -87,6 +90,7 @@ void setup_wifi() {
 void setup() {
   setup_io();
   setup_lcd();
+  
   setup_neuralNetwork();
   reset_result();
   // setup_wifi();
@@ -182,6 +186,11 @@ void mpu_data_ready() {
   tmp = Wire.read() << 8 | Wire.read(); p.RZ = double(tmp);
   if(p.X == p.Y && p.X == p.Z && p.X == p.RX) {
     Serial.println("SENSOR ERROR");
+    display.println("SENSOR ERROR");
+    display.display();
+    // reset mpu
+    setup_mpu6050(mpu_data_ready);
+    return;
   }
   parseSample(p);
 
@@ -210,7 +219,9 @@ void loop() {
   mpu_data_ready();
   if(newResultReady) {
     newResultReady = false;
-    
+
+
+
     display.clearDisplay();
     display.setCursor(0,0);
     display.println("---Result---");
@@ -218,9 +229,17 @@ void loop() {
       display.print("P"); display.print(i+1); display.print(": ");
       display.println(currentResult.results[i]/n_results);
     }
-    // display.println(output[0]);
-    // display.println(output[1]);
-    // display.println(tick);
     display.display();
+
+
+
+    // Serial.println("---Result---");
+    // for(int i = 0; i < currentResult.resultLength; i++) {
+    //   Serial.print("P"); Serial.print(i+1); Serial.print(": ");
+    //   Serial.println(currentResult.results[i]/n_results);
+    // }
+    // Serial.println();
+    // Serial.println();
+
   }
 }

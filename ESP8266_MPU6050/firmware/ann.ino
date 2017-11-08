@@ -69,17 +69,16 @@ networkResult EvaluateNetwork(group g) {
   }
 
   // loop through layers
-  // Serial.println("--X--,--Y--,--Z--,--RX--");
-  Serial.println();
-  Serial.println();
-  Serial.println();
-  for(l = ann.layers; l < ann.layers + ann.n_layers; l++) {
-    for(current = l->nodes; current < l->nodes+l->n_nodes; current++) {
-      Serial.print(current->val, 5);Serial.println();
-    }
-    Serial.println();
-  }
-
+  //  // Serial.println("--X--,--Y--,--Z--,--RX--");
+  // Serial.println();
+  // Serial.println();
+  // Serial.println();
+  // for(l = ann.layers; l < ann.layers + ann.n_layers; l++) {
+  //   for(current = l->nodes; current < l->nodes+l->n_nodes; current++) {
+  //     Serial.print(current->val, 5);Serial.println();
+  //   }
+  //   Serial.println();
+  // }
 
 
   l = ann.layers+ann.n_layers-1;

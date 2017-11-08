@@ -3,13 +3,13 @@
 void mpu6050_setRegister(uint8_t addr, uint8_t val) {
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(addr);  // PWR_MGMT_1 register
-  Wire.write(val);     // set to zero (wakes up the MPU-6050)
+  Wire.write(val);    // set to zero (wakes up the MPU-6050)
   Wire.endTransmission(true);  
 }
 
 void setup_mpu6050(void (*interruptRutine)(void)) {
-  pinMode(mpuInterruptPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(mpuInterruptPin), interruptRutine, RISING);
+  // pinMode(mpuInterruptPin, INPUT_PULLUP);
+  // attachInterrupt(digitalPinToInterrupt(mpuInterruptPin), interruptRutine, RISING);
   
   Wire.begin(14,12);
   // Wire.begin(5,4);
@@ -21,5 +21,4 @@ void setup_mpu6050(void (*interruptRutine)(void)) {
 
   // Wire.setClock(3400000);
   Wire.setClock(400000);
-  // Wire.setClock(100000);
 }
