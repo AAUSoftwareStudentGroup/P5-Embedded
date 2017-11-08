@@ -3,7 +3,9 @@
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 #include <stdlib.h>
+#include <SPI.h>
 
+#include "Adafruit_SSD1306.h"
 #include "datastructures.h"
 #include "mpu.h"
 #include "ann.h"
@@ -19,17 +21,35 @@ IPAddress recieverIP;
 
 int LED = 16;
 
-//////////
+#define OLED_MOSI  4
+#define OLED_CLK   5
+#define OLED_DC    0
+#define OLED_CS    2
+#define OLED_RESET 16
+Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+
+#if (SSD1306_LCDHEIGHT != 64)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
 
 datapoint downSampleBuffer[20];
 datapoint shotBuffer[10];
-////////
 
 void setup_io() {
   pinMode(LED, OUTPUT);
 
   // initialize serial communication for debugging purposes
   Serial.begin(115200);
+}
+
+void setup_lcd() {
+  display.begin(SSD1306_SWITCHCAPVCC); // No idea what it does, does not work without
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.println("Initialized");
+  display.display();
 }
 
 void setup_wifi() {
@@ -66,6 +86,7 @@ void setup_wifi() {
 
 void setup() {
   setup_io();
+  setup_lcd();
   setup_neuralNetwork();
   reset_result();
   // setup_wifi();
@@ -189,12 +210,17 @@ void loop() {
   mpu_data_ready();
   if(newResultReady) {
     newResultReady = false;
-    Serial.println("---Result---");
+    
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println("---Result---");
     for(int i = 0; i < currentResult.resultLength; i++) {
-      Serial.print("P"); Serial.print(i+1); Serial.print(": ");
-      Serial.println(currentResult.results[i]/n_results);
+      display.print("P"); display.print(i+1); display.print(": ");
+      display.println(currentResult.results[i]/n_results);
     }
-    Serial.println();
-    Serial.println();
+    // display.println(output[0]);
+    // display.println(output[1]);
+    // display.println(tick);
+    display.display();
   }
 }

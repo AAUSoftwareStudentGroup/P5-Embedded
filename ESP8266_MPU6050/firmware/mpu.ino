@@ -11,13 +11,15 @@ void setup_mpu6050(void (*interruptRutine)(void)) {
   pinMode(mpuInterruptPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(mpuInterruptPin), interruptRutine, RISING);
   
-  Wire.begin(5,4);
+  Wire.begin(14,12);
+  // Wire.begin(5,4);
   mpu6050_setRegister(0x6b, 0);
   mpu6050_setRegister(0x1b, 0b11000);
   mpu6050_setRegister(0x1c, 0b11000);
-  mpu6050_setRegister(0x37, 0b10000); // clear interrupt on any read
-  mpu6050_setRegister(0x38, 0b1); // Enable data ready interrupt
+  // mpu6050_setRegister(0x37, 0b10000); // clear interrupt on any read
+  // mpu6050_setRegister(0x38, 0b1); // Enable data ready interrupt
 
   // Wire.setClock(3400000);
   Wire.setClock(400000);
+  // Wire.setClock(100000);
 }
