@@ -37,16 +37,16 @@ namespace ArduinoMLTester
 
         static void Main(string[] args)
         {
-            if (!File.Exists("data.json"))
+            if (!File.Exists("data2.json"))
             {
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri("http://p5datahub.azurewebsites.net");
-                var tests = client.GetAsync("/api/model/128/test/120");
+                var tests = client.GetAsync("/api/model/128/test/121");
                 string json = tests.Result.Content.ReadAsStringAsync().Result;
-                File.WriteAllText("data.json", json);
+                File.WriteAllText("data2.json", json);
             }
             
-            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<Response<TestInfo>>(File.ReadAllText("data.json"));
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<Response<TestInfo>>(File.ReadAllText("data2.json"));
             var port = new System.IO.Ports.SerialPort(System.IO.Ports.SerialPort.GetPortNames()[0]);
             port.BaudRate = 57600;
             port.Open();
@@ -62,7 +62,57 @@ namespace ArduinoMLTester
             Random rnd = new Random();
             if (response.Success)
             {
-                float[] totalConfidence = new float[2];
+                float[] totalConfidence = new float[response.Data.Labels.Length];
+
+                var layers = new List<ILayer>()
+                {
+                    new LinearCompleteLayer(40, 40),
+                    new SigmoidLayer(40),
+                    new LinearCompleteLayer(40, 3),
+                    new SigmoidLayer(3)
+                };
+
+                NeuralNetwork nn = new NeuralNetwork(layers);
+
+                List<TraningData> trainData = new List<TraningData>();
+
+                foreach (var set in response.Data.TrainingSet.OrderBy(d => rnd.NextDouble()))
+                {
+                    var output = response.Data.Labels.Select(l => set.Labels.Any(l2 => l2.Id == l.Id) ? 1.0 : 0.0).ToArray();
+                    foreach (var data in set.Data.OrderBy(d => rnd.NextDouble()))
+                    {
+                        List<double> input = new List<double>();
+                        foreach (var point in data.Data.Take(10))
+                        {
+                            foreach (var val in new double[] { point.X / 2000.0, point.Y / 2000.0, point.Z / 2000.0, point.RX / 10000.0 }.Select(f => (float)f))
+                            {
+                                input.Add(val);
+                            }
+                        }
+
+                        trainData.Add(new TraningData()
+                        {
+                            InputFeatures = input.ToArray(),
+                            TargetFeatures = output
+                        });
+                    }
+
+                }
+
+                var groups = trainData.GroupBy(d => d.TargetFeatures.TakeWhile(b => b != 1).Count());
+                var min = groups.Select(g => g.Count()).Min();
+                List<TraningData> eqTrain = new List<TraningData>();
+
+                foreach (var group in groups)
+                {
+                    foreach (var item in group.Take(min/5))
+                    {
+                        eqTrain.Add(item);
+                    }
+                }
+
+                //nn.Train(eqTrain.ToArray(), 1000);
+
                 foreach (var set in response.Data.TestSet.OrderBy(r => rnd.NextDouble()))
                 {
                     
@@ -84,7 +134,8 @@ namespace ArduinoMLTester
                         ////compute(network2, input.Select(d => (float)d).ToArray(), out2);
                         //int i = 0;
 
-                        float[] confidence = new float[2];
+
+                        float[] confidence = new float[response.Data.Labels.Length];
 
                         for (int i = 0; i < response.Data.Labels.Length; i++)
                         {
@@ -110,8 +161,8 @@ namespace ArduinoMLTester
 
                         //var bestLabel = response.Data.Labels[conf.TakeWhile(c => c != conf.Max()).Count()];
                         //var bestLabelEg = response.Data.Labels[confEg.TakeWhile(c => c != confEg.Max()).Count()];
-
-                        Console.WriteLine($"{set.Name};{DateTime.Now.Subtract(t0).TotalMilliseconds};{totalConfidence[0]};{totalConfidence[1]}");
+                        var hm = nn.Output(input.ToArray());
+                        Console.WriteLine($"{set.Name};{DateTime.Now.Subtract(t0).TotalMilliseconds};{string.Join(";", confidence)}");
                     }
                     //Console.WriteLine($"{set.Name}: {string.Join(" ", conf)}");
                 }
@@ -184,6 +235,204 @@ namespace ArduinoMLTester
             {
                 output[i] = tempOut[i];
             }
+        }
+    }
+
+    class TraningData
+    {
+        public double[] InputFeatures { get; set; }
+        public double[] TargetFeatures { get; set; }
+    }
+
+    class NeuralNetwork
+    {
+        public IEnumerable<ILayer> Layers { get; set; }
+
+        public NeuralNetwork(IEnumerable<ILayer> layers)
+        {
+            Layers = layers;
+        }
+
+        private double[] SumSqErrorLayer(double[] ys, double[] predicted)
+        {
+            double[] error = new double[ys.Length];
+            for (int i = 0; i < ys.Length; i++)
+            {
+                error[i] = ys[i] - predicted[i];
+            }
+            return error;
+        }
+
+        public void Train(TraningData[] data, int iterations)
+        {
+            Random rand = new Random();
+            double[] error = new double[0];
+            int percentage = 0;
+            for (int i = 0; i < iterations; i++)
+            {
+                foreach (var d in data)
+                {
+                    List<double> vals = new List<double>();
+                    foreach (var input in d.InputFeatures)
+                    {
+                        vals.Add(input);
+                    }
+                    double[] values = vals.ToArray();
+                    foreach (var layer in Layers)
+                    {
+                        values = layer.OutputValues(values);
+                    }
+                    error = SumSqErrorLayer(d.TargetFeatures, values);
+                    foreach (var layer in Layers.Reverse())
+                    {
+                        error = layer.Backprop(error, 0.005);
+                    }
+                    //Console.WriteLine(string.Join(", ", error.Select(q => Math.Round(q * 100))));
+                }
+                if ((int)(i / (iterations - 1.0) * 100) != percentage)
+                {
+                    percentage = (int)(i / (iterations - 1.0) * 100);
+                    Console.WriteLine(percentage + "%");
+                }
+            }
+        }
+
+        public double[] Output(double[] values)
+        {
+            foreach (var layer in Layers)
+            {
+                values = layer.OutputValues(values);
+            }
+            return values;
+        }
+    }
+
+    class SigmoidLayer : ILayer
+    {
+        public SigmoidLayer(int nodes)
+        {
+            this.nodes = nodes;
+            output = new double[nodes];
+            inputError = new double[nodes];
+        }
+
+        int nodes;
+
+        private double[] output, inputError;
+
+        public double[] OutputValues(double[] input)
+        {
+            for (int i = 0; i < nodes; i++)
+            {
+                output[i] = 1 / (1 + Math.Exp(-input[i]));
+            }
+            return output.ToArray();
+        }
+
+        public double[] Backprop(double[] error, double learningRate)
+        {
+            for (int i = 0; i < nodes; i++)
+            {
+                inputError[i] = output[i] * (1 - output[i]) * error[i];
+            }
+            return inputError.ToArray();
+        }
+    }
+
+    interface ILayer
+    {
+        double[] OutputValues(double[] input);
+        double[] Backprop(double[] error, double learningRate);
+    }
+
+    class LinearCompleteLayer : ILayer
+    {
+        public double[,] Weights { get; }
+
+        public double[] ConstantWeights { get; private set; }
+
+        public int Inputs { get; }
+
+        public int Outputs { get; }
+
+        public LinearCompleteLayer(double[,] weights, double[] constantWeights, int inputs, int outputs)
+        {
+            Weights = weights;
+            Inputs = inputs;
+            input = new double[Inputs + 1];
+            output = new double[outputs];
+            inputError = new double[Inputs + 1];
+            Outputs = outputs;
+            ConstantWeights = constantWeights;
+        }
+
+        public LinearCompleteLayer(int inputs, int outputs)
+        {
+            Inputs = inputs;
+            Outputs = outputs;
+            Weights = new double[outputs, inputs + 1];
+            input = new double[Inputs + 1];
+            output = new double[outputs];
+            inputError = new double[Inputs + 1];
+            Random rand = new Random();
+
+            for (int o = 0; o < outputs; o++)
+            {
+                for (int i = 0; i <= inputs; i++)
+                {
+                    Weights[o, i] = rand.NextDouble();
+                }
+            }
+        }
+
+        private double[] input, output, inputError;
+
+        public double[] OutputValues(double[] input)
+        {
+            this.input = input;
+            for (int o = 0; o < Outputs; o++)
+            {
+                double val = 0;
+                int i = 0;
+                foreach (var value in input.Concat(new double[] { 1 }))
+                {
+                    val += Weights[o, i] * value;
+                    i++;
+                }
+                this.output[o] = val;
+            }
+            return this.output.ToArray();
+        }
+
+        public double[] Backprop(double[] error, double learningRate)
+        {
+            int j = 0, i = 0;
+            foreach (var err in error)
+            {
+                i = 0;
+                foreach (var inp in input.Concat(new double[] { 1 }))
+                {
+                    Weights[j, i] += learningRate * inp * err;
+                    i++;
+                }
+                j++;
+            }
+
+            i = 0;
+            j = 0;
+            foreach (var inp in input.Concat(new double[] { 1 }))
+            {
+                double inputError = 0;
+                j = 0;
+                foreach (var err in error)
+                {
+                    inputError += Weights[j, i] * err;
+                    j++;
+                }
+                this.inputError[i] = inputError;
+                i++;
+            }
+            return this.inputError.ToArray();
         }
     }
 }

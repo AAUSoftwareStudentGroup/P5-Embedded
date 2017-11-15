@@ -77,6 +77,10 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Test-121-Model-128.eg" />
+    <None Include="Test-123-Model-112.eg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Test-120-Model-128-encog.txt">
