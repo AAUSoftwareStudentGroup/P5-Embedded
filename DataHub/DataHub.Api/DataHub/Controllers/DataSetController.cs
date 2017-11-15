@@ -89,6 +89,31 @@ namespace DataHub.Controllers
         }
 
         [HttpGet]
+        [Route("api/dataset/{id}/file")]
+        public Response DownloadAllData(int id)
+        {
+            using (Entities db = new Entities())
+            {
+                var result = db.DataSet.FirstOrDefault(r => r.Id == id);
+
+                if (result == null)
+                    return new ErrorResponse() { ErrorCode = ErrorCode.InvalidId };
+
+                string attachment = $"attachment; filename={result.Name}";
+                HttpContext.Current.Response.Clear();
+                HttpContext.Current.Response.ClearHeaders();
+                HttpContext.Current.Response.ClearContent();
+                HttpContext.Current.Response.AddHeader("content-disposition", attachment);
+                HttpContext.Current.Response.ContentType = "text/plain";
+                HttpContext.Current.Response.Charset = "utf-8";
+                HttpContext.Current.Response.BinaryWrite(File.ReadAllBytes(result.LocalFileName));
+                HttpContext.Current.Response.End();
+            }
+
+            return new Response();
+        }
+
+        [HttpGet]
         [Route("api/dataset/{id}")]
         public Response<Messages.DataSet> GetDataSetById(int? id)
         {

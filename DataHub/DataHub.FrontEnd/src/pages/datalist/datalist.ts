@@ -32,4 +32,9 @@ export class DataList {
             }
         );
     }
+
+    public downloadDataSet(dataset)
+    {
+        window.location.href = 'http://p5datahub.azurewebsites.net/api/dataset/' + dataset.Id + '/file';
+    }
 }
