@@ -1,4 +1,3 @@
-
 def generate_description(model_name, parameters, author="Ibsen"):
     param_list = ["Parameters given to model: \n"]
     for param in parameters:

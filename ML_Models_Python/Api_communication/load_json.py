@@ -19,7 +19,7 @@ def add_dataset(api_data, dataset, json_obj, cached_data_dict, dataset_type):
         else:
             api_data.add_testSet(dataset)
 
-
+# loads json by making a get request to the API
 def load_json(modeltype_string):
     base_url = 'http://p5datahub.azurewebsites.net/api/modeltype/'
     base_cache_str = '?cachedIds='
@@ -28,6 +28,7 @@ def load_json(modeltype_string):
     if not cached_data_ids == base_cache_str:
         get_modeltype_url = get_modeltype_url + cached_data_ids
     #r = requests.get(get_modeltype_url)
+    # for test purposes this line has been added
     r = requests.get("http://p5datahub.azurewebsites.net/api/model/154/test/120")
     print r
     d = json.loads(r.content)
@@ -35,7 +36,7 @@ def load_json(modeltype_string):
     if not (d['Success']) or not (d['ErrorKey'] == "NoError"):
         raise ValueError("Something wen't wrong in requesting data from server")
     Api_data = ApiData(data['Id'], data['ModelId'], data['ModelTypeId'], data['ModelTypeName'])
-    # create properties
+
     [Api_data.set_parameter(Property(prop['Id'], prop['PropertyId'], prop['Name'], prop['Value'])) for prop in data["Parameters"]]
 
     # read trainsets and transform it to dataframes
@@ -52,7 +53,7 @@ def load_json(modeltype_string):
     cache_data(Api_data, settings.cached_data_dict)
     return Api_data
 
-
+# cache the datasets that we have seen before
 def cache_data(api_data, cached_data_dict):
     for testSet in api_data.testSetData:
         cached_data_dict[testSet.id] = testSet
@@ -60,7 +61,7 @@ def cache_data(api_data, cached_data_dict):
     for trainSet in api_data.trainSetData:
         cached_data_dict[trainSet.id] = trainSet
 
-
+# get the ids of all caches dataset
 def get_cached_data_string(cached_data_dict):
     data_ids = ','.join(str(i) for i in cached_data_dict)
     cached_string = "?cachedIds="
