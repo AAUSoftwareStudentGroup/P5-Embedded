@@ -1,14 +1,12 @@
 data/
 *.csv
 venv/
-<<<<<<< HEAD
-*.pkl
-*.json
 *.png
-=======
 *.cache
 *.ide
 *.pkl
 *.json
 DataHub/DataHub.Api/DataHub/App_Data/ModelFiles/
->>>>>>> development
+.idea/
+__pycache__/
+*.pyc
