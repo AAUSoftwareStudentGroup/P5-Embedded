@@ -86,7 +86,7 @@ def IdentifyPlayer():
 
     to_send = raw_input("send request? (y/n)")
 
-    if to_send == "y":
+    if to_send == "n":
         headers = {'content-type': 'application/json'}
         post_response = requests.post("https://p5datahub.azurewebsites.net/api/test/{}/result".format(data.id), data= response, headers=headers)
         print post_response

@@ -5,12 +5,12 @@ import numpy as np
 
 
 def get_features_from_shots(data, labels, model_name, feature_method="shot_stats"):
-    print "len of train_set: {}".format(len(data))
+    print ("len of train_set: {}").format(len(data))
     is_label_iterable = len(np.array(labels).shape) > 1
     label_dict = {}
     if len(data) is not len(labels):
         raise ValueError("Add a label for each train set")
-    for i in xrange(len(data)):
+    for i in range(len(data)):
         shots = data[i].shots
         label_list = labels[i]
         if is_label_iterable:

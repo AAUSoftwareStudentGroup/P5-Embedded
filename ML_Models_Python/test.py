@@ -22,5 +22,8 @@ class Test_Generate_Labels(unittest.TestCase):
         self.assertEqual(label_dict[''.join(str(nr) for nr in new_labels[3])], "Morten")
 
 
+# TODO: test rolling windows and shuffling
+
+
 if __name__ == '__main__':
     unittest.main()

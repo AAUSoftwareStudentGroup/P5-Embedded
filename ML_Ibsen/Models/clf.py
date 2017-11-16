@@ -99,7 +99,10 @@ class LR(Clf_base):
         Clf_base.__init__(self, name)
         self.clf = Sequential()
         self.clf.add(Dense(input_dim=shape[0], output_dim=output_shape, activation='softmax'))
-        self.clf.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+        if output_shape == 2:
+            self.clf.compile(optimizer='rmsprop', loss='binary_crossentropy')
+        else:
+            self.clf.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 
     def learn(self, train, labels, epochs=1000, monitor="loss", earlystopping=False):
         train, labels = shuffle(train, labels, random_state=0)

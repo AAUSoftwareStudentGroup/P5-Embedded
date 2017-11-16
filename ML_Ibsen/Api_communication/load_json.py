@@ -9,7 +9,7 @@ def add_shots(dataset, json_obj):
         dataset.add_shot(json_normalize(group['Group']))
 
 def load_json():
-    r = requests.get('http://p5datahub.azurewebsites.net/api/modeltype/31/test')
+    r = requests.get('http://p5datahub.azurewebsites.net/api/model/124/test/120')
 
     #with open('groupshotsapi.json') as data_file:
     d = json.loads(r.content)

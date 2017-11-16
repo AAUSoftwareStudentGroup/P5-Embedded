@@ -27,11 +27,10 @@ def load_json(modeltype_string):
     cached_data_ids = get_cached_data_string(settings.cached_data_dict)
     if not cached_data_ids == base_cache_str:
         get_modeltype_url = get_modeltype_url + cached_data_ids
-    r = requests.get(get_modeltype_url)
+    #r = requests.get(get_modeltype_url)
+    r = requests.get("http://p5datahub.azurewebsites.net/api/model/154/test/120")
     print r
-    #with open('groupshotsapi.json') as data_file:
     d = json.loads(r.content)
-        #d = json.load(data_file)
     data = d['Data']
     if not (d['Success']) or not (d['ErrorKey'] == "NoError"):
         raise ValueError("Something wen't wrong in requesting data from server")

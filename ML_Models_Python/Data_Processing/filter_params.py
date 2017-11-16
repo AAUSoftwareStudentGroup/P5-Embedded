@@ -34,6 +34,15 @@ def filter_params(argument, param_dict):
         lr_learn_param_names = ["epochs", "earlystopping"]
         return filter_specific_params(param_dict, None, lr_learn_param_names)
 
+    elif (argument == "stackedrnn"):
+        stackedrnn_init_param_names = ["activation_function", "hidden_activations", "output_activation", "hidden_layers", "loss_function"]
+        stackedrnn_learn_param_names = ["epochs", "batch_size"]
+
+        return filter_specific_params(param_dict, stackedrnn_init_param_names, stackedrnn_learn_param_names)
+    elif (argument == "simplernn"):
+        simple_init_param_names = ["HL_neurons"]
+        return filter_specific_params(param_dict, simple_init_param_names, None)
+
 
 def filter_specific_params(param_dict, init_param, train_param):
     init_dict = {}
