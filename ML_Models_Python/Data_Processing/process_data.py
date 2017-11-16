@@ -1,9 +1,7 @@
 import numpy as np
-from Models.kmeans import group_shots, get_center_cords
 from Data_Processing.process_helpers import convert_to_np_array
 from Feature_Extraction.get_stats_from_shots import make_statistic_features
 from sklearn.preprocessing import StandardScaler
-from keras.preprocessing.sequence import pad_sequences
 
 
 def make_features(shots, input_arg, model_name):
@@ -25,12 +23,6 @@ def make_features(shots, input_arg, model_name):
         result = f(subset_shots_data)
         return scaler.fit(result).transform(result)
 
-
-def k_groups(shots):
-    movements_grouped = group_shots(shots, 5)
-    return np.array(get_center_cords(movements_grouped, 5))
-
-
 def shot_stats(shots):
     return make_statistic_features(shots)
 
@@ -41,7 +33,6 @@ def raw_data(shots):
 
 def get_feature_method(argument):
     mappings = {
-        "k_groups": k_groups,
         "shot_stats": shot_stats,
         "raw": raw_data
     }
@@ -70,6 +61,7 @@ def make_ten_datapoints_per_shot(shots):
         result_arrays[c] = intermediate_array
     return result_arrays
 
+
 def rolling2d(data, window_size, n_features):
     data_windows = np.zeros((data.shape[0] - window_size + 1, window_size, n_features))
     for i in xrange(data.shape[0] - window_size + 1):
@@ -95,7 +87,3 @@ def transform_and_squash(shots, size):
         segments.append(segment)
 
     return segments
-
-
-def padding(sequences):
-    pad_sequences(sequences, padding='post')
