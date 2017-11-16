@@ -194,6 +194,17 @@ chart {
 	width: 1em;
 }
 
+.download-icon {
+	height: 1em;
+	float:right;
+	margin-right: 1em;
+	margin-left: 1em;
+	margin-top: 3px;
+	opacity: 0.5;
+	cursor: pointer;
+	width: 1em;
+}
+
 .input-field, .button-save {
 	display: inline-block; 
 	border: none; 
@@ -215,6 +226,10 @@ chart {
 }
 
 .delete-icon:hover {
+	opacity: 1;
+}
+
+.download-icon:hover {
 	opacity: 1;
 }
 

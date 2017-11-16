@@ -35,7 +35,8 @@ namespace DataHub.Client
             
         private TestInfo GetTestInfo()
         {
-            var tests = client.GetAsync("/api/modeltype/"+ModelTypeID+"/test?cachedIds=" + string.Join(",", testData.Keys.Concat(trainData.Keys)));
+            var tests = client.GetAsync("/api/modeltype/" + ModelTypeID + "/test?cachedIds=" + string.Join(",", testData.Keys.Concat(trainData.Keys)));
+            //var tests = client.GetAsync("/api/model/128/test/120?cachedIds=" + string.Join(",", testData.Keys.Concat(trainData.Keys)));
 
             Console.WriteLine("Sending request");
 
