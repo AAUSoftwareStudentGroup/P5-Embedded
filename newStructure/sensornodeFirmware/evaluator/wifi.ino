@@ -8,6 +8,7 @@ char macstr[18];
 
 void setup_wifi() {
 
+    WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_SSID);
 
     // Wait for connection

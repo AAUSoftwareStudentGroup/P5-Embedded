@@ -42,6 +42,7 @@ int mpuNextReadReady = 0;
 
 void loop() {
   datapoint sensorData;
+
   if((mpuNextReadReady-(int)micros()) < 0) {
     mpuNextReadReady = micros()+MPU_READ_DIFFTIME_MICRO_SECONDS;
     sensorData = mpu_read();
