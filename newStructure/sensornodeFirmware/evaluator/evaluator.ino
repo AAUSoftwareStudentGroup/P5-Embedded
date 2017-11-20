@@ -7,10 +7,9 @@
 #include "ann.h"
 #include "wifi.h"
 
-int aliveTime = 0;
 
 void setup_io() {
-  pinMode(LED, OUTPUT);
+  pinMode(PIN_LED, OUTPUT);
 
   // initialize serial communication for debugging purposes
   Serial.begin(115200);
@@ -19,7 +18,7 @@ void setup_io() {
 void setup() {
 
   setup_io();
-  Serial.print();
+  Serial.println();
   Serial.println("Setup:");
   
   Serial.println("- ANN ...");
@@ -27,7 +26,7 @@ void setup() {
   resetResult();
 
   Serial.println("- MPU ...");
-  setup_mpu6050(mpu_data_ready);
+  mpu_setup();
 
   Serial.println("- WIFI ...");
   setup_wifi();
@@ -39,36 +38,30 @@ int n_results;
 bool newResultReady;
 networkResult currentResult;
 
-
-
-
-
 void loop() {
   static int mpuNextReadReady = 0;
   datapoint sensorData;
 
-  handleWifiInput();
-
   if(mpuNextReadReady-micros() < 0) {
     mpuNextReadReady = micros()+MPU_READ_DIFFTIME_MICRO_SECONDS;
-    sensorData = handleMPU();
+    sensorData = mpu_read();
     parseSample(sensorData);
   }
 
-  if(annResultReady) {
-    annResultReady = false;
+  if(newResultReady) {
+    newResultReady = false;
 
     for(int i = 0; i < currentResult.resultLength; i++) {
       String s = String();
       // current accumulated result is prepended uppercase P
       s += "P" + String(i+1) + ": " + String(currentResult.results[i]/n_results);
-      sendString(s);
+      write(s);
     }
     for(int i = 0; i < currentResult.resultLength; i++) {
       String s = String();
       // current result is prepended lowercase p
       s += "p" + String(i+1) + ": " + String(currentResult.results[i]);
-      sendString(s);
+      write(s);
     }
   }
 }
@@ -142,26 +135,3 @@ void parseSample(datapoint p) {
     parseScaledSample(p);
   }
 }
-
-void handleWifiInput() {
-  // packet types:
-  // - '.' keep alive
-  // - 'R' Reset
-  int packetSize = client.parsePacket();
-  if (packetSize)
-  {
-    char packet[64];
-    int len = client.read(packet, 64);
-    if (len > 0) {
-      packet[len] = '\0';
-    }
-
-    aliveTime = micros()+1000;
-    switch(packet[0]) {
-      case 'R':
-        resetResult();
-        break;
-    }
-  }
-}
-

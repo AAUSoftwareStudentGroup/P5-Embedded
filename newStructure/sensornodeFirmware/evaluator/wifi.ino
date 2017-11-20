@@ -8,27 +8,26 @@ void setup_wifi() {
   IPAddress defaultIP = client.remoteIP();
 
 // Connect to wifi network
-// WiFi.begin(ssid, password);
-  while(!WiFi.softAP(ssid)) {
+  #ifdef CONFIG_WIFI_AS_ACCESSPOINT
+  while(!WiFi.softAP(WIFI_AP_SSID)) {
     Serial.println("Failed to create AP");
   }
-
-//   Serial.print("Connecting to wifi");
-//   // Wait for connection
-//   while(WiFi.status() != WL_CONNECTED) {
-//     Serial.print(".");
-//     delay(500);
-//     // digitalWrite(LED, state++ % 2);
-//   }
-
-  Serial.println();
-  Serial.println("Waiting for app to say hi");
+  #else
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("Connecting to wifi");
+  // Wait for connection
+  while(WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+    digitalWrite(PIN_LED, state++ % 2);
+  }
 
   // Print the IP address to serial
-  // Serial.println(WiFi.localIP());
+  Serial.println(WiFi.localIP());
+  #endif
+
 
   client.begin(8085);
-  // client.beginPacket(client.remoteIP(), 8085);
   while(client.remoteIP() == defaultIP) {
     delay(250);
     Serial.print(".");

@@ -3,7 +3,7 @@
 
 #include <Wire.h>
 #include "config.h"
-#include "datastructure.h"
+#include "datastructures.h"
 
 int lastRecievedPacketTime = 0;
 int mpuInterruptPin = 2;

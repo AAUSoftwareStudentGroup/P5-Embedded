@@ -9,14 +9,14 @@ void _mpu_setRegister(uint8_t addr, uint8_t val) {
 
 void mpu_setup() {
   Wire.begin(PIN_MPU_SDA, PIN_MPU_SCL);
-  mpu_setRegister(0x6b, 0);
-  mpu_setRegister(0x1b, 0b11000);
-  mpu_setRegister(0x1c, 0b11000);
+  _mpu_setRegister(0x6b, 0);
+  _mpu_setRegister(0x1b, 0b11000);
+  _mpu_setRegister(0x1c, 0b11000);
 
   Wire.setClock(400000);
 }
 
-mpuData mpu_read() {
+datapoint mpu_read() {
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
   Wire.endTransmission(false);
@@ -33,8 +33,8 @@ mpuData mpu_read() {
   tmp = Wire.read() << 8 | Wire.read(); p.RZ = double(tmp);
   if(p.X == p.Y && p.X == p.Z && p.X == p.RX) {
     Serial.println("SENSOR ERROR");
-    setup_mpu6050(mpu_data_ready);
-    return;
+    mpu_setup();
+    return p;
   }
   return p;
 }

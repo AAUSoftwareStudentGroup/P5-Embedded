@@ -13,13 +13,11 @@
 
 
 
-
-
 	#if defined CONFIG_WIFI_AS_ACCESSPOINT
 
-		#define WIFI_SSID "Mote_01"
-		#define WIFI_USE_PASS false
-		#define WIFI_PASS "TannerHelland"
+		#define WIFI_AP_SSID "Mote_01"
+		#define WIFI_AP_USE_PASS false
+		#define WIFI_AP_PASS "TannerHelland"
 
 	#elif defined CONFIG_WIFI_AS_NODE
 
