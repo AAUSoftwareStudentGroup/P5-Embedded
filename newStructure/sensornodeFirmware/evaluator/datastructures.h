@@ -45,6 +45,7 @@ typedef struct _network {
   layer* layers;
   int n_layers;
   networkResult lastResult;
+  char** labels;
 } network;
 
 typedef struct _group

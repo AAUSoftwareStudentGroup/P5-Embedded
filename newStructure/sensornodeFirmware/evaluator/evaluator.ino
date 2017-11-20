@@ -38,11 +38,11 @@ int n_results;
 bool newResultReady;
 networkResult currentResult;
 
-void loop() {
-  static int mpuNextReadReady = 0;
-  datapoint sensorData;
+int mpuNextReadReady = 0;
 
-  if(mpuNextReadReady-micros() < 0) {
+void loop() {
+  datapoint sensorData;
+  if((mpuNextReadReady-(int)micros()) < 0) {
     mpuNextReadReady = micros()+MPU_READ_DIFFTIME_MICRO_SECONDS;
     sensorData = mpu_read();
     parseSample(sensorData);
@@ -57,13 +57,14 @@ void loop() {
     //   s += "P" + String(i+1) + ": " + String(currentResult.results[i]/n_results);
     //   write(s);
     // }
+    Serial.println("test");
     String s = String();
     s += String(macstr) + "#";
     for(int i = 0; i < currentResult.resultLength; i++) {
-      // current result is prepended lowercase p
-      s += "p" + String(i+1) + ": " + String(currentResult.results[i]);
-      write(s);
+        Serial.println(String("Printing labels: ") + String(ann.labels[i]));
+        s += String(ann.labels[i]) + ":" + String(currentResult.results[i]) + ";";
     }
+    write(s);
   }
 }
 

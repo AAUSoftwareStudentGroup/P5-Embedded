@@ -7,23 +7,8 @@ uint8_t MACAddr[6];
 char macstr[18];
 
 void setup_wifi() {
-  IPAddress defaultIP = client.remoteIP();
 
-  #ifdef CONFIG_WIFI_AS_ACCESSPOINT
-  
-    // start AP
-    while(!WiFi.softAP(WIFI_AP_SSID)) {
-      Serial.println("Failed to create AP");
-    }
-  #endif
-  #ifdef CONFIG_WIFI_AS_NODE
-    // Connect to wifi network
-    
-    #if WIFI_USE_PASS == true
-      WiFi.begin(WIFI_SSID, WIFI_PASS);
-    #else 
-      WiFi.begin(WIFI_SSID);
-    #endif
+    WiFi.begin(WIFI_SSID);
 
     // Wait for connection
     while(WiFi.status() != WL_CONNECTED) {
@@ -31,9 +16,10 @@ void setup_wifi() {
       delay(500);
       // digitalWrite(PIN_LED, state++ % 2);
     }
-  #endif
 
   recieverIP = WiFi.gatewayIP();
+
+  Serial.println(recieverIP);
 
 
   WiFi.macAddress(MACAddr);
