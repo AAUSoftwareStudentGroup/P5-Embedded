@@ -51,14 +51,15 @@ void loop() {
   if(newResultReady) {
     newResultReady = false;
 
+    // for(int i = 0; i < currentResult.resultLength; i++) {
+    //   String s = String();
+    //   // current accumulated result is prepended uppercase P
+    //   s += "P" + String(i+1) + ": " + String(currentResult.results[i]/n_results);
+    //   write(s);
+    // }
+    String s = String();
+    s += String(macstr) + "#";
     for(int i = 0; i < currentResult.resultLength; i++) {
-      String s = String();
-      // current accumulated result is prepended uppercase P
-      s += "P" + String(i+1) + ": " + String(currentResult.results[i]/n_results);
-      write(s);
-    }
-    for(int i = 0; i < currentResult.resultLength; i++) {
-      String s = String();
       // current result is prepended lowercase p
       s += "p" + String(i+1) + ": " + String(currentResult.results[i]);
       write(s);
@@ -85,9 +86,13 @@ void resetResult() {
 }
 
 void handleNewResult(networkResult result) {
+  // for(int i = 0; i < currentResult.resultLength; i++)
+  //   currentResult.results[i] += result.results[i];
+  // n_results++;
+  // newResultReady = true;
+
   for(int i = 0; i < currentResult.resultLength; i++)
-    currentResult.results[i] += result.results[i];
-  n_results++;
+    currentResult.results[i] = result.results[i];
   newResultReady = true;
 }
 
