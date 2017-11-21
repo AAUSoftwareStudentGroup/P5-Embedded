@@ -422,15 +422,15 @@ namespace DataHub.Controllers
                     t = 0; x = 0; y = 0; z = 0; rx = 0; ry = 0; rz = 0;
                     int c = 0;
                     int scale = 20;
-                    foreach (var d in data)
+                    foreach (var datapoint in data)
                     {
-                        t += d.Time;
-                        x += d.X;
-                        y += d.Y;
-                        z += d.Z;
-                        rx += d.RX;
-                        ry += d.RY;
-                        rz += d.RZ;
+                        t += datapoint.Time;
+                        x += datapoint.X;
+                        y += datapoint.Y;
+                        z += datapoint.Z;
+                        rx += datapoint.RX;
+                        ry += datapoint.RY;
+                        rz += datapoint.RZ;
                         c++;
                         if (c == scale)
                         {
