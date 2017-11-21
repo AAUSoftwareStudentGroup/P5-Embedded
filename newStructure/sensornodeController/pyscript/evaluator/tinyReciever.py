@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import curses
-from Mote import *
 
 # import subprocess, os, errno
 import socket

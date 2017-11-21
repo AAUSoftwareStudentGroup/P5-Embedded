@@ -24,7 +24,7 @@ void setup() {
   Serial.println("- WIFI");
   setup_wifi();
 
-
+  // setup a timer interrupt that triggers every 2ms
   noInterrupts();
   timer0_isr_init();
   timer0_attachInterrupt(timer0InterruptHandler);
