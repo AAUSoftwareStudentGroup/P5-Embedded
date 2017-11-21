@@ -17,13 +17,14 @@ void mpu_setup() {
 }
 
 datapoint mpu_read() {
-  Wire.beginTransmission(MPU_ADDR);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
-  Wire.requestFrom((uint8_t)MPU_ADDR,(size_t)14,true);  // request a total of 14 registers
   short tmp;
   datapoint p;
-  // Serial.println(Wire.read());
+  
+  Wire.beginTransmission(MPU_ADDR);
+  Wire.write(0x3B);  // Start reading from MPU register 0x3B (= ACCEL_XOUT_H)
+  Wire.endTransmission(false);
+  Wire.requestFrom((uint8_t)MPU_ADDR,(size_t)14,true);  // request a total of 14 registers
+
   tmp = Wire.read() << 8 | Wire.read(); p.X = double(tmp);
   tmp = Wire.read() << 8 | Wire.read(); p.Y = double(tmp);
   tmp = Wire.read() << 8 | Wire.read(); p.Z = double(tmp);

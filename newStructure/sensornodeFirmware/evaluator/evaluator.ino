@@ -7,6 +7,33 @@
 #include "ann.h"
 #include "wifi.h"
 
+group networkFodder;
+bool networkFodderReady = false;
+
+void setup() {
+  setup_io();
+  Serial.println();
+  Serial.println("Initializing:");
+  
+  Serial.println("- ANN");
+  setup_neuralNetwork();
+
+  Serial.println("- MPU");
+  mpu_setup();
+
+  Serial.println("- WIFI");
+  setup_wifi();
+
+
+  noInterrupts();
+  timer0_isr_init();
+  timer0_attachInterrupt(timer0InterruptHandler);
+  // 2ms timeout
+  timer0_write(ESP.getCycleCount()+TIMER0_INTERRUPT_TIME_MICRO_SECONDS*160);
+  interrupts();
+
+  Serial.println("Starting!");
+}
 
 void setup_io() {
   pinMode(PIN_LED, OUTPUT);
@@ -15,107 +42,55 @@ void setup_io() {
   Serial.begin(115200);
 }
 
-void setup() {
-
-  setup_io();
-  Serial.println();
-  Serial.println("Setup:");
-  
-  Serial.println("- ANN ...");
-  setup_neuralNetwork();
-  resetResult();
-
-  Serial.println("- MPU ...");
-  mpu_setup();
-
-  Serial.println("- WIFI ...");
-  setup_wifi();
-
-  Serial.println("Starting!");
-}
-
-int n_results;
-bool newResultReady;
-networkResult currentResult;
-
-int mpuNextReadReady = 0;
-
 void loop() {
-  datapoint sensorData;
+  if(networkFodderReady) {
+    networkFodderReady = false;
+    networkResult result = EvaluateNetwork(networkFodder);
 
-  if((mpuNextReadReady-(int)micros()) < 0) {
-    mpuNextReadReady = micros()+MPU_READ_DIFFTIME_MICRO_SECONDS;
-    sensorData = mpu_read();
-    parseSample(sensorData);
-  }
-
-  if(newResultReady) {
-    newResultReady = false;
-
-    // for(int i = 0; i < currentResult.resultLength; i++) {
-    //   String s = String();
-    //   // current accumulated result is prepended uppercase P
-    //   s += "P" + String(i+1) + ": " + String(currentResult.results[i]/n_results);
-    //   write(s);
-    // }
-    Serial.println("test");
+    // Send result over UDP
+    // format - MACAddress#Label_1:Result1;Label_2:Result_2;...Label_N:Result_N;
+    // example  9C:B6:D0:DE:CC:59#Anton:0.7932416;Morten:0.2178694;
     String s = String();
     s += String(macstr) + "#";
-    for(int i = 0; i < currentResult.resultLength; i++) {
-        Serial.println(String("Printing labels: ") + String(ann.labels[i]));
-        s += String(ann.labels[i]) + ":" + String(currentResult.results[i]) + ";";
+    for(int i = 0; i < result.resultLength; i++) {
+        s += String(ann.labels[i]) + ":" + String(result.results[i], 8) + ";";
     }
-    write(s);
+
+    wifi_write(s);
+    #ifdef DEBUG
+    Serial.println(s);
+    #endif
   }
 }
 
+void timer0InterruptHandler() {
+  // Schedule next interrupt
+  timer0_write(ESP.getCycleCount()+TIMER0_INTERRUPT_TIME_MICRO_SECONDS*160);
 
-void write(String s) {
-  wifi_write(s);
+  // Get new sensor readings
+  datapoint sensorData = mpu_read();
 
-  #ifdef DEBUG
-  Serial.println(s);
-  #endif
-}
-
-void resetResult() {
-  currentResult.resultLength = (ann.layers+ann.n_layers-1)->n_nodes;
-  currentResult.results = (double*)malloc(sizeof(double)*currentResult.resultLength);
-  for(int i = 0; i < currentResult.resultLength; i++)
-    currentResult.results[i] = 0;
-  n_results = 0;
-  newResultReady = false;
-}
-
-void handleNewResult(networkResult result) {
-  // for(int i = 0; i < currentResult.resultLength; i++)
-  //   currentResult.results[i] += result.results[i];
-  // n_results++;
-  // newResultReady = true;
-
-  for(int i = 0; i < currentResult.resultLength; i++)
-    currentResult.results[i] = result.results[i];
-  newResultReady = true;
+  // Process the data
+  parseSample(sensorData);
 }
 
 void parseScaledSample(datapoint p) {
   static datapoint shotBuffer[10];
   static int shotBufferIndex = 0;
 
+  // If a shot is already started OR this datapoint has a large enough rotation value to indicate that this is a new shot
   if(shotBufferIndex > 0 || (p.RX > 0.5 || p.RX < -0.5)) {
     shotBuffer[shotBufferIndex++] = p;
     if(shotBufferIndex >= 10) {
       shotBufferIndex = 0;
-      group g;
-      g.length = 10;
-      g.datapoints = shotBuffer;
-      networkResult result = EvaluateNetwork(g);
+      
+      networkFodder.length = 10;
+      networkFodder.datapoints = shotBuffer;
 
-      handleNewResult(result);
+      networkFodderReady = true;
     }
   }
 }
-
 
 void parseSample(datapoint p) {
   static datapoint downSampleBuffer[20];
@@ -124,7 +99,7 @@ void parseSample(datapoint p) {
   downSampleBuffer[downSampleBufferIndex++] = p;
   if(downSampleBufferIndex >= 20) {
     downSampleBufferIndex = 0;
-    datapoint p = downSampleBuffer[0];
+    p = downSampleBuffer[0];
     for(int i = 1; i < 20; i++) {
       p.X += downSampleBuffer[i].X;
       p.Y += downSampleBuffer[i].Y;

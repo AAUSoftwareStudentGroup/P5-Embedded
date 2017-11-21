@@ -1,28 +1,30 @@
 #ifndef __CONFIG__
 #define __CONFIG__
-		
-	#define MPU_ADDR 0x68
-	#define MPU_READ_DIFFTIME_MICRO_SECONDS 2000
 
+	// Pin configuration
 	#define PIN_MPU_SDA 5
 	#define PIN_MPU_SCL 4 
 	#define PIN_LED 16
+	
+	// MPU6050 configuration
+	#define MPU_ADDR 0x68 // MPU I2C address
 
-	#define CONFIG_WIFI_AS_NODE
+	// Time between interrupt triggerings
+	#define TIMER0_INTERRUPT_TIME_MICRO_SECONDS 1999 // it takes about a millisecond to start the ISR
+
+	// Enable debug print
 	#define DEBUG
 
 
+	// WiFi configuration
+	#define WIFI_SSID "FootballRelay"
+	#define WIFI_USE_PASS false
+	#define WIFI_PASS "TannerHelland"
+	#define UDP_PORT 8085
 
-	#if defined CONFIG_WIFI_AS_ACCESSPOINT
-		#define WIFI_AP_SSID "Mote_01"
-		#define WIFI_AP_USE_PASS false
-		#define WIFI_AP_PASS "TannerHelland"
-
-	#endif
-	#ifdef CONFIG_WIFI_AS_NODE
-		#define WIFI_SSID "FootballRelay"
-		#define WIFI_USE_PASS false
-		#define WIFI_PASS "TannerHelland"
-	#endif
+	// Encog parser configuration
+	#define ENCOG_LABEL_MAX_LENGTH 16 				// Size of buffer wherein ENCOG labels are read into
+	#define ENCOG_FORCE_OVERWRITE_MODEL true		// ReWrite the default model on boot
+	#define ENCOG_MODEL_FILE_PATH "/model"			// File path of encog model
 
 #endif

@@ -12,13 +12,11 @@ typedef struct _datapoint
   double RZ;
 } datapoint;
 
-#define _T 0
-#define _X 1
-#define _Y 2
-#define _Z 3
-#define _RX 4
-#define _RY 5
-#define _RZ 6
+typedef struct _group
+{
+  int length;
+  datapoint* datapoints;
+} group;
 
 typedef struct _node {
   // there are as many weights as there are nodes in the next layer
@@ -45,13 +43,7 @@ typedef struct _network {
   layer* layers;
   int n_layers;
   networkResult lastResult;
-  char** labels;
+  char** labels; // The number of labels is equal to the number of nodes in the final layer
 } network;
-
-typedef struct _group
-{
-  int length;
-  datapoint* datapoints;
-} group;
 
 #endif

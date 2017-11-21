@@ -8,24 +8,19 @@ void setup_neuralNetwork() {
 }
 
 double sigmoid(double x) {
-  double returnValue;
-  double expValue;
+  double returnValue, expValue;
 
   expValue = exp((double) -x);
-
   returnValue = 1.0l / (1.0l + expValue);
 
   return returnValue;
 }
 
 networkResult EvaluateNetwork(group g) {
-  // fill input layer
   layer* l;
   node* current; 
   node* next;
   int nextNodeIndex;
-
-
 
   // init node values to zero
   for(l = ann.layers; l < ann.layers + ann.n_layers; l++) {
@@ -75,7 +70,7 @@ networkResult EvaluateNetwork(group g) {
   //   Serial.println();
   // }
 
-
+  // copy final layer node values to result vector
   l = ann.layers+ann.n_layers-1;
   for(int i = 0; i < l->n_nodes; i++) {
     ann.lastResult.results[i] = l->nodes[i].val;
