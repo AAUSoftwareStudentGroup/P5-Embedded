@@ -30,7 +30,7 @@ def main(screen):
     localIP = socket.gethostbyname(socket.gethostname())
     # remove last part of ip : 192.168.1.132 -> 192.168.1.{}
     subnet = localIP[::-1].split('.', 1)[1][::-1] + '.{}'
-    apip = subnet.format(1)
+    apip = subnet.format(252)
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -44,10 +44,11 @@ def main(screen):
 
     while(running):
         # Key options
-        sock.sendto('.', (apip, 8085))
-        rawdata,(senderIp,_) = sock.recvfrom(13)
+        sock.sendto('a', (apip, 8085))
+        rawdata,(senderIp,_) = sock.recvfrom(5*6)
 
-        menu.addstr(1,1,rawdata)
+        menu.addstr(1,1,apip)
+        menu.addstr(2,1,rawdata)
 
         screen.refresh()
         menu.refresh(menuScroll,0,0,0,curses.LINES-3,curses.COLS-1)
