@@ -6,7 +6,8 @@ venv/
 *.ide
 *.pkl
 *.json
-DataHub/DataHub.Api/DataHub/App_Data/ModelFiles/
+software/DataHub/DataHub.Api/DataHub/App_Data/ModelFiles/
 .idea/
 __pycache__/
 *.pyc
+*.vs/
