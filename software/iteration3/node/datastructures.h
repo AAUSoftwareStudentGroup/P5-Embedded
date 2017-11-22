@@ -20,9 +20,10 @@ typedef struct _group
 
 typedef struct _node {
   // there are as many weights as there are nodes in the next layer
+  double error;
   double* weights;
   double val;
-  // int n_weights; 
+  // int n_weights;
 } node;
 
 typedef struct _layer {

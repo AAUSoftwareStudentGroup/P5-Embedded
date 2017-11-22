@@ -10,71 +10,62 @@
 
 void main(){
 
-
-    double test[datanum];
-    double low = 20000, high = 0;
-    for(i = 0; i < datanum; i++){
-      test[i] = (double)rand();
-      if(test[i] < low){
-        low = test[i];
-      }
-      if(test[i] > high){
-        high = test[i];
-      }
-    }
-
-    printf("high: %f. low: %f", high, low);
-
-    for(i = 0; i < datanum; i++){
-      for(j = 0; j < InputN; i++){
-        //data[i].input[j] = (double)rand()/32767.0;
-      }
-      for(j = 0; i < OutN; j++){
-        //data[i].teach[j] = (double)rand()/32767.0;
-      }
-    }
-
-    printf("some data:\n");
-
 }
-
-double*
 
 //sigmoid backprop
-double* sigmoidBackprop(double* error, double* output, int outputlenght, double learningrate){
+void sigmoidBackprop(layer inputLayer, layer outputLayer, double* error){
   int i;
-  double* inputError;
   for (i = 0; i < outputlength; i++){
-    inputError[i] = output[i] * (1 - output[i] * error[i]);
+    inputLayer->nodes[i]->error = outputLayer->nodes->val * (1 - outputLayer->nodes[i]->val) * error[i];
   }
-  return inputError;
 }
-
-double* linearCompleteLayer(node n, double* output, double** weights, error){
-
-}
-
-double* linearBackprop(double* error, double* input, double learningrate, double* weights, double inputlenght, double outputlenght){
+//takes three layers as input: an input, output and the netx layer after that,
+//which is used to calculate the number of weights for each note in the output layer.
+void linearOutputValues(layer inputLayer, layer Outputlayer, layer nextlayer){
+  //assuming that the wights have been created
   int i, j;
-  for(i = 0; i < inputlenght; i++){
-    for(j = 0; j < outputlenght; j++)
-      weight[i][j] = weight[i][j] + learningrate * input[i] * error[j];
+  double value = 0;
+  for(i = 0; i < outputLayer->n_nodes; i++){
+    for(j = 0; j < nextLayer->n_nodes){
+      value += outputlayer->nodes[i]->weights[j] * inputLayer->nodes[i]->val;
+    }
+    outputLayer->nodes[i]->val = value;
   }
 }
 
-double* sumSqErrorLayer(Ys, predicted){
+void linearBackprop(layer inputLayer, layer outputLayer, layer nextLayer, double* error, double learningrate){
+  int i, j;
 
+  for(i = 0; i < inputLayer->n_nodes; i++){
+    for(j = 0; j < nextLayer->n_nodes; j++){
+      inputLayer->nodes[i]->weights[j] += learningrate * inputLayer->nodes[i]->val * error[j]
+    }
+  }
+  i = 0;
+  j = 0;
+  double value = 0.0;
+  for(i = 0; i < inputLayer->n_nodes; i++){
+    for(j = 0; j < nextLayer->n_nodes; j++){
+        value += inputLayer->nodes[i]->weights[j] * error[i];
+    }
+    inputLayer->nodes[i]->error = value;
+  }
 }
 
+double* sumSqErrorLayer(double* ys, int ysLength, double* predicted){
+  int i;
+  double* error;
+  for(i = 0; i < ysLength; i++){
+    ys[i] - predicted[i];
+  }
+  return error;
+}
 
-
-
-double sigmoid(double x) {
+double sigmoidOutput(double x) {
+  //sigmoid function for a single value
   double returnValue;
   double expValue;
-
   expValue = exp((double) -x);
-
   returnValue = 1.0l / (1.0l + expValue);
 
   return returnValue;
