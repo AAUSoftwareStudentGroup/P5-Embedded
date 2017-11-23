@@ -52,7 +52,7 @@ void loop() {
     String s = String();
     s += String(macstr) + "#";
     for(int i = 0; i < networkFodder.length; i++) {
-        s += String(networkFodder.datapoints[i].X) + ":" + String(networkFodder.datapoints[i].Y) + ":" + String(networkFodder.datapoints[i].Z) + ":" + String(networkFodder.datapoints[i].RX) + ";";
+        s += String(networkFodder.datapoints[i].X) + ":" + String(networkFodder.datapoints[i].Y) + ":" + String(networkFodder.datapoints[i].Z) + ":" + String(networkFodder.datapoints[i].RX) + ":";
     }
 
     wifi_write(s);
@@ -61,6 +61,8 @@ void loop() {
     #endif
   }
 }
+
+int led = 0;
 
 void timer0InterruptHandler() {
   // Schedule next interrupt

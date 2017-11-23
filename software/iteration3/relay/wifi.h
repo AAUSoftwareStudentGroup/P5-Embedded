@@ -8,6 +8,7 @@
 
 extern uint8_t MACAddr[6];
 extern char macstr[18];
+extern WiFiUDP UDP;
 
 void setup_wifi();
 void wifi_write(String str);

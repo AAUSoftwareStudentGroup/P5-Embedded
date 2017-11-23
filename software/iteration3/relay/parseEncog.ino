@@ -115,8 +115,8 @@ void _parseEncogModel_parseLayerSizes(File* fp, network* n) {
 
 void _parseEncogModel_parsesLabels(File* fp, network* n) {
     _parseEncogModel_seekString(fp, "labels=");
-    n->labels = (char**)malloc(sizeof(char*)*n->lastResult.resultLength);
-    for(int i = 0; i < n->lastResult.resultLength; i++){
+    n->labels = (char**)malloc(sizeof(char*)*n->lastResult.length);
+    for(int i = 0; i < n->lastResult.length; i++){
         n->labels[i] = (char*) malloc(sizeof(char)*ENCOG_LABEL_MAX_LENGTH);
         _readString(fp, n->labels[i]);
     }
@@ -183,8 +183,8 @@ network parseEncogModel() {
 	_parseEncogModel_parseLayerSizes(&f, &n);
 	
 	// allocate results array
-	n.lastResult.resultLength = n.layers[n.n_layers-1].n_nodes;
-	n.lastResult.results = (double*)malloc(sizeof(double)*n.lastResult.resultLength);
+	n.lastResult.length = n.layers[n.n_layers-1].n_nodes;
+	n.lastResult.results = (double*)malloc(sizeof(double)*n.lastResult.length);
 
 	_parseEncogModel_parsesLabels(&f, &n);
 

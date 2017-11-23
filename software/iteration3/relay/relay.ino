@@ -1,11 +1,12 @@
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 #include <stdlib.h>
+#include "datastructures.h"
+#include "config.h"
+#include "ann.h"
+#include "wifi.h"
 
 static int LED_state = 0;
-char nodebuffer[NODE_BUFFER_SIZE];
-String s;
-WiFiUDP UDP;
 WiFiClient client;
 
 void setup() {
@@ -13,9 +14,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);
 
-  // create AP
-  Serial.println();
-  Serial.println();
+
 
   Serial.println(String("Creating access point \"")+ WIFI_AP_SSID + "\" without password");
   WiFi.mode(WIFI_AP_STA);
@@ -32,67 +31,67 @@ void setup() {
     delay(500);
     digitalWrite(PIN_LED, LED_state++ % 2);
   }
+  Serial.println("");
 
+  // create ANN
+  Serial.println("- ANN");
+  setup_neuralNetwork();
   // Start udp socket
   while(UDP.begin(8085) == 0);
-  s = "";
 }
 
-void loop() {
+char* getMacFromNodeInput(char** buffer) {
+  char* mac = *buffer;
+  char* endOfMac = *buffer;
+  
+  while((*endOfMac) != '#') endOfMac++;
+
+  *endOfMac = '\0';
+
+  *buffer = endOfMac+1;
+
+  return mac;
+}
+
+group getShotsFromNodeInput(char* buffer) {
+  group shot;
+  shot.length = 10;
+  shot.datapoints = (datapoint*)malloc(sizeof(datapoint)*shot.length);;
+
+  double parsedDatapoints[40];
+      
+  // For all datapoints
+  for(int i = 0; i < 40; i++) {
+    char* endOfNumber = buffer;
+    // Find end of number
+    while(*endOfNumber != ':') endOfNumber++;
+    *endOfNumber = '\0';
+
+    // Parse number
+    parsedDatapoints[i] = String(buffer).toFloat();
+
+    buffer = endOfNumber+1;
+  }
+  // Format array as group
+  for(int i = 0; i < 10; i++) {
+    shot.datapoints[i].X = parsedDatapoints[i*4];
+    shot.datapoints[i].Y = parsedDatapoints[i*4+1];
+    shot.datapoints[i].Z = parsedDatapoints[i*4+2];
+    shot.datapoints[i].RX = parsedDatapoints[i*4+3];
+  }
+  return shot;
+}
+
+void relayResult(char* macAddr, networkResult annOut) {
   static int nextSendTime = 0;
 
-  // If we recieved data from a node
-  if(UDP.parsePacket()) {
-    int len = UDP.read(nodebuffer, NODE_BUFFER_SIZE);
-    nodebuffer[len] = '\0';
-
-    // TODO: Parse mac address
-    String clientMacAddress = nodebuffer.substr(0, 12);
-
-    // TODO: Parse data into networkFodder group
-    group networkFodder;
-    int strPointer;
-
-    double parsedDataPoints[40];
-
-    // For all groups
-    for(int groupIndex = 0; groupIndex < 10; groupIndex++) {
-      // Parse 1 group
-      startPointer = strPointer;
-      for(;nodebuffer[strPointer] != ';';strPointer++);
-      groupStr = nodebuffer.substr(startPointer, strPointer-startPointer);
-
-      // Parse each datapoint
-      for(int datapointIndex; datapointIndex > 4; datapointIndex++) {
-        dataPointStartIndex = dataPointIndex; 
-        for(int i = 0; groupStr[i] != ":"; i++); // Find end of this number
-        parsedDataPoints[parsedDataPointsIndex] = stod(groupStr.substr(datapointIndex, dataPointStartIndex-dataPointIndex));
-        parsedDataPointsIndex++;
-      }
-    }
-    
-    int j = 0; 
-    for(int i = 0; i < 10; i++) {
-      networkFodder.datapoints[i].X = parsedDataPoints[j]; j++;
-      networkFodder.datapoints[i].Y = parsedDataPoints[j]; j++;
-      networkFodder.datapoints[i].Z = parsedDataPoints[j]; j++;
-      networkFodder.datapoints[i].RX = parsedDataPoints[j]; j++;
-    }
-
-    // Evaluate network with new data
-    networkResult result = EvaluateNetwork(networkFodder);
-
-    // append result to the buffer
-    s += clientMacAddress + "#";
-    s += String(result) + "\n";
-    #ifdef DEBUG
-    Serial.println(result);
-    #endif
+  String s = String(macAddr) + "#";
+  for(int i = 0; i < annOut.length; i++) {
+      s += String(ann.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
   }
 
-  // Enough RELAY_BUFFERING_TIME_MS has passed AND there is data in the buffer AND were connected to the internet
-  if(nextSendTime - (int)millis() < 0 && s.length() > 0 && WiFi.isConnected()) {
-    nextSendTime = millis()+RELAY_BUFFERING_TIME_MS;
+  if(nextSendTime - (int)millis() < 0 && WiFi.isConnected()) {
+    nextSendTime = millis()+RELAY_BUFFERING_TIME_MS*0;
 
     // Connect to server
     if (!client.connect(HTTP_HOST, HTTP_PORT)) {
@@ -106,7 +105,7 @@ void loop() {
                  "Content-Type: application/json\r\n" \
                  "Content-Length: "+ (s.length()+2) +"\r\n" \
                  "Connection: close\r\n\r\n"+"\"" + s + "\"");
-
+    Serial.println(s);
     // Wait till done 
     int timeout = millis()+RELAY_HTTP_REQUEST_TIMEOUT_MS;
     while(client.connected()) {
@@ -120,8 +119,36 @@ void loop() {
       }
     }
     client.stop();
+  }
+}
 
-    // reset buffer
-    s = "";
+void loop() {
+  static char* nodebuffer = (char*)malloc(sizeof(char)*NODE_BUFFER_SIZE);
+  char* macAddrStr;
+
+  // if theres data
+  if(UDP.parsePacket()) {
+    // data format: mac#1.23:4.56:1.23:4.56;1.23:4.56:1.23:4.56; * 12
+    Serial.println("Dingding");
+    int len = UDP.read(nodebuffer, NODE_BUFFER_SIZE);
+    nodebuffer[len] = '\0'; 
+    
+    // save mac for writing output later
+    Serial.println("nodebuffer: " + String(nodebuffer));
+    macAddrStr = getMacFromNodeInput(&nodebuffer);
+    
+    // parse data as input for ann
+    Serial.println("Mac: " + String(macAddrStr));
+    group shot = getShotsFromNodeInput((char*)nodebuffer);
+    
+    // evaluate network
+    Serial.println("Evaluating network");
+    networkResult annOut = EvaluateNetwork(shot);
+    // Free shot array
+    free(shot.datapoints);
+
+    // send network result with mac prepended
+    Serial.println("Sending result");
+    relayResult(macAddrStr, annOut);
   }
 }

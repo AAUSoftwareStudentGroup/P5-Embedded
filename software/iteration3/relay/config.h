@@ -22,15 +22,15 @@
 
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
-	#define WIFI_SSID "wifi"
-	#define WIFI_PASS "TannerHelland"
+	#define WIFI_SSID "AAU-1-DAY"
+	#define WIFI_PASS "wet76shut"
 	#define UDP_PORT 8085
 	#define HTTP_HOST "p5datahub.azurewebsites.net"
 	#define HTTP_PORT 80
 	#define RELAY_BUFFERING_TIME_MS 3000
 	#define RELAY_HTTP_REQUEST_TIMEOUT_MS 2000
 
-	#define NODE_BUFFER_SIZE 300
-	#define NODE_BUFFER_LENGTH 300
+	#define NODE_BUFFER_SIZE 3000
+	#define NODE_BUFFER_LENGTH 3000
 
 #endif

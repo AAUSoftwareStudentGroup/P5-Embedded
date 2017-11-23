@@ -35,7 +35,7 @@ typedef struct _layer {
 
 typedef struct _networkResult {
   double* results;
-  int resultLength;
+  int length;
 } networkResult;
 
 typedef struct _network {

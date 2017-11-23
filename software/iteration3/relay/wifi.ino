@@ -1,6 +1,6 @@
 #include "wifi.h"
 
-WiFiUDP client;
+WiFiUDP UDP;
 IPAddress recieverIP;
 
 uint8_t MACAddr[6];
@@ -29,17 +29,17 @@ void setup_wifi() {
   sprintf(macstr, "%02X:%02X:%02X:%02X:%02X:%02X", MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
   
   // Start listening on port 8085
-  client.begin(UDP_PORT);
+  UDP.begin(UDP_PORT);
 }
 
 void wifi_handle_data() {
-  if (client.parsePacket() > 0) {
+  if (UDP.parsePacket() > 0) {
     // Change reciever of data to the one who just contacted us
-    recieverIP = client.remoteIP();
+    recieverIP = UDP.remoteIP();
 
 
 
-    // int len = client.read(incomingPacket, 255);
+    // int len = UDP.read(incomingPacket, 255);
     // if (len > 0) {
     //   incomingPacket[len] = 0;
     // }
@@ -47,7 +47,7 @@ void wifi_handle_data() {
 }
 
 void wifi_write(String str) {
-  client.beginPacket(recieverIP, UDP_PORT);
-  client.write(str.c_str(), str.length());
-  client.endPacket();
+  UDP.beginPacket(recieverIP, UDP_PORT);
+  UDP.write(str.c_str(), str.length());
+  UDP.endPacket();
 }
