@@ -8,6 +8,7 @@
 
 static int LED_state = 0;
 WiFiClient client;
+network neuralNet;
 
 void setup() {
   // setup serial for debugging
@@ -36,8 +37,12 @@ void setup() {
   // create ANN
   Serial.println("- ANN");
   setup_neuralNetwork();
+  neuralNet = initiateRandomNetwork();
+  
   // Start udp socket
   while(UDP.begin(8085) == 0);
+
+  randomSeed(micros());
 }
 
 char* getMacFromNodeInput(char** buffer) {
@@ -82,12 +87,12 @@ group getShotsFromNodeInput(char* buffer) {
   return shot;
 }
 
-void relayResult(char* macAddr, networkResult annOut) {
+void relayResult(char* macAddr, networkResult annOut, network* ann) {
   static int nextSendTime = 0;
 
   String s = String(macAddr) + "#";
   for(int i = 0; i < annOut.length; i++) {
-      s += String(ann.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
+      s += String(ann->labels[i]) + ":" + String(annOut.results[i], 8) + ";";
   }
 
   if(nextSendTime - (int)millis() < 0 && WiFi.isConnected()) {
@@ -143,12 +148,12 @@ void loop() {
     
     // evaluate network
     Serial.println("Evaluating network");
-    networkResult annOut = EvaluateNetwork(shot);
+    networkResult annOut = EvaluateNetwork(&neuralNet, shot);
     // Free shot array
     free(shot.datapoints);
 
     // send network result with mac prepended
     Serial.println("Sending result");
-    relayResult(macAddrStr, annOut);
+    relayResult(macAddrStr, annOut, &neuralNet);
   }
 }

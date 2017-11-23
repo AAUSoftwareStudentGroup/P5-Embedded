@@ -22,6 +22,7 @@ typedef struct _node {
   // there are as many weights as there are nodes in the next layer
   double* weights;
   double val;
+  double error;
   // int n_weights; 
 } node;
 
@@ -45,5 +46,11 @@ typedef struct _network {
   networkResult lastResult;
   char** labels; // The number of labels is equal to the number of nodes in the final layer
 } network;
+
+// training example
+typedef struct _example {
+  group input;
+  networkResult output;
+} example;
 
 #endif

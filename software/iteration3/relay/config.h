@@ -33,4 +33,6 @@
 	#define NODE_BUFFER_SIZE 3000
 	#define NODE_BUFFER_LENGTH 3000
 
+	#define LEARNING_RATE 0.1
+
 #endif
