@@ -1,7 +1,6 @@
 data/
 *.csv
 venv/
-*.png
 *.cache
 *.ide
 *.pkl
