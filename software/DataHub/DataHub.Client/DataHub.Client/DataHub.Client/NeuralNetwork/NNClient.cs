@@ -18,10 +18,10 @@ namespace DataHub.Client.NeuralNetwork
 {
     public class NNClient : DataHubClient
     {
-        public NNClient() : base("NN encog 1.1")
+        public NNClient() : base("NN encog 1.2 Early stop")
         {   }
 
-        private BasicMLDataSet ConvertData(TestInfo testInfo, TrainData trainData)
+        private BasicMLDataSet[] ConvertData(TestInfo testInfo, TrainData trainData)
         {
             List<double[]> inputs = new List<double[]>();
             List<double[]> outputs = new List<double[]>();
@@ -37,8 +37,6 @@ namespace DataHub.Client.NeuralNetwork
                 {
                     List<double> input = new List<double>();
 
-                    double timeDiff = (group.Data.First().Time - prevGroup.Data.Last().Time) / 2000;
-                    input.Add(timeDiff);
                     foreach (var data in group.Data.Take(10))
                     {
                         input.Add(data.X / 2000);
@@ -73,12 +71,19 @@ namespace DataHub.Client.NeuralNetwork
 
             Console.WriteLine("Converted");
 
-            return new BasicMLDataSet(inputs.ToArray(), outputs.ToArray());
+            var trainCount = (int)Math.Floor(inputs.Count * 0.8);
+
+            var train = new BasicMLDataSet(inputs.Take(trainCount).ToArray(), outputs.Take(trainCount).ToArray());
+            var validation = new BasicMLDataSet(inputs.Skip(trainCount).ToArray(), outputs.Skip(trainCount).ToArray());
+
+            return new BasicMLDataSet[] { train, validation };
         }
 
         public override TestResult Train(TestInfo testInfo, TrainData trainData)
         {
-            BasicMLDataSet dataset = ConvertData(testInfo, trainData);
+            var data = ConvertData(testInfo, trainData);
+            var dataset = data[0];
+            var datasetValidation = data[1];
 
             Dictionary<string, IActivationFunction> activationFunctionDict = new Dictionary<string, IActivationFunction>()
             {
@@ -93,7 +98,7 @@ namespace DataHub.Client.NeuralNetwork
 
             // intialise network and create first layer
             var network = new BasicNetwork();
-            network.AddLayer(new BasicLayer(null, true, 41));
+            network.AddLayer(new BasicLayer(null, true, 40));
 
             // assuming the four arrays are of same length, perhaps make a check for this
             // add layers corresponding to parameter input
@@ -112,16 +117,19 @@ namespace DataHub.Client.NeuralNetwork
             network.Reset();
 
             IMLTrain train = new ResilientPropagation(network, dataset);
+            train.AddStrategy(new Encog.ML.Train.Strategy.End.SimpleEarlyStoppingStrategy(datasetValidation));
 
             Console.WriteLine("Training");
 
-            int iterations = int.Parse(testInfo.Parameters.First(pa => pa.Name == "Train Iterations").Value);
-            for (int i = 0; i < iterations; i++)
+            StringBuilder str = new StringBuilder();
+            int epocs = 0;
+            do
             {
+                epocs++;
                 train.Iteration();
-                Console.WriteLine(train.Error);
-            }
-
+            } while (!train.TrainingDone);
+            var err = train.Error;
+            var errVal = network.CalculateError(datasetValidation);
             train.FinishTraining();
 
             Console.WriteLine(string.Join(" ", trainData.Keys.Select(k => testInfo.Labels.First(l => l.Id == k).Name + "(" + trainData.Where(t => t.Key == k).Sum(q => q.Value.Count) + ")")));
@@ -139,9 +147,7 @@ namespace DataHub.Client.NeuralNetwork
                 {
                     if (group.Data.Length >= 10)
                     {
-                        double timeDiff = (group.Data.First().Time - prevGroup.Data.Last().Time) / 2000;
                         List<double> input = new List<double>();
-                        input.Add(timeDiff);
                         foreach (var d in group.Data.Take(10))
                         {
                             input.Add(d.X / 2000);
@@ -180,29 +186,8 @@ namespace DataHub.Client.NeuralNetwork
 
                 Console.WriteLine(testSet.Name + ": " + string.Join(" ", confidence.Select(c => Math.Round(c * 100) / 100)));
             }
-            FileInfo networkFile = new FileInfo($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}.eg");
+            FileInfo networkFile = new FileInfo($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}-{epocs}-{(int)(err * 100)}-{(int)(errVal * 100)}-{Guid.NewGuid()}.eg");
             Encog.Persist.EncogDirectoryPersistence.SaveObject(networkFile, (BasicNetwork)network);
-
-            List<string> lines = new List<string>();
-            List<List<List<double>>> layers = new List<List<List<double>>>();
-            for (int l = 0; l < network.LayerCount - 1; l++)
-            {
-                List<List<double>> layerWeights = new List<List<double>>();
-                for (int from = 0; from < network.GetLayerNeuronCount(l); from++)
-                {
-                    List<double> weights = new List<double>();
-                    for (int to = 0; to < network.GetLayerNeuronCount(l + 1); to++)
-                    {
-                        weights.Add(network.GetWeight(l, from, to));
-                    }
-                    layerWeights.Add(weights);
-                    lines.Add(string.Join(" ", weights.Select(w => w.ToString())));
-                }
-                lines.Add("#");
-                layers.Add(layerWeights);
-            }
-
-            File.WriteAllLines($"Models/Test-{testInfo.Id}-Model-{testInfo.ModelId}.txt", lines);
 
             return new TestResult()
             {

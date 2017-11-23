@@ -117,12 +117,21 @@ html, body {
 	background-color: #eaeaea;
 }
 
-chart {
+.chart-full {
 	position: absolute;
 	top: 70px;
 	bottom: 20px;
 	right: 20px;
 	left: 20px;
+	z-index: 2;
+	box-shadow: 0px 0px 5px gray;
+	display: block;
+}
+
+.chart-half {
+	right: 20px;
+	left: 20px;
+	margin-bottom: 20px;
 	z-index: 2;
 	box-shadow: 0px 0px 5px gray;
 	display: block;

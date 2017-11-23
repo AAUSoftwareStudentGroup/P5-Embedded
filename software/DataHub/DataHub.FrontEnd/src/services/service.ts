@@ -20,6 +20,38 @@ export class Service {
             }); 
     }
 
+    public fetchSensors() {
+        return this.http.get(this.API_URL + "/api/sensor")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            }); 
+    }
+
+    public resetSensorData() {
+        return this.http.delete(this.API_URL + "/api/sensor/data")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            }); 
+    }
+
+    public fetchSensorData(id) {
+        return this.http.get(this.API_URL + "/api/sensor/" + id.replace + "/data")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            }); 
+    }
+
+    public fetchSensorAccumulatedData(id) {
+        return this.http.get(this.API_URL + "/api/sensor/" + id + "/data/accumulate")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            }); 
+    }
+
     public fetchDataSet(id) {
         return this.http.get(this.API_URL + "/api/dataset/" + id)
             .toPromise()
