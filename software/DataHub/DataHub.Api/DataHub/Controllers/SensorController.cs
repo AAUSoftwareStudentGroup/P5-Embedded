@@ -19,13 +19,49 @@ namespace DataHub.Controllers
             public Dictionary<string, double> Classifications { get; set; } = new Dictionary<string, double>();
         }
 
+        public class SensorInfo
+        {
+            public string Label;
+            public List<LiveData> LiveData = new List<SensorController.LiveData>();
+        }
+
         //mac address -> classifications
-        static Dictionary<string, List<LiveData>> liveData = new Dictionary<string, List<LiveData>>();
+        static Dictionary<string, SensorInfo> sensorInfo = new Dictionary<string, SensorInfo>();
+
+        [HttpPost]
+        [Route("api/sensor/{sensorId}/label")]
+        public Response<string> SetLabel(string sensorId, [FromBody]string label)
+        {
+            if (sensorInfo.ContainsKey(sensorId))
+            {
+                sensorInfo[sensorId].Label = label;
+            }
+            else
+                sensorInfo.Add(sensorId, new SensorInfo() { Label = label });
+
+            return new Response<string>() { Data = sensorInfo[sensorId].Label };
+        }
+
+        [HttpGet]
+        [Route("api/sensor/labels")]
+        public string GetLabels()
+        {
+            string labelString = "";
+            foreach (var item in sensorInfo)
+            {
+                labelString += $"{item.Key}#{item.Value.Label}\r\n";
+            }
+
+            return labelString;
+        }
 
         [HttpPost]
         [Route("api/sensor/data")]
-        public bool AddLiveData([FromBody]string data)
+        public string AddLiveData([FromBody]string data)
         {
+            if (data == null)
+                return GetLabels();
+
             var lines = data.Replace("\r", "").Split('\n');
             foreach (var line in lines)
             {
@@ -33,10 +69,10 @@ namespace DataHub.Controllers
                 live.Time = DateTime.Now;
                 var lineSplit = line.Split('#');
                 if (lineSplit.Length != 2)
-                    return false;
+                    return GetLabels();
                 live.Mac = lineSplit[0].Replace(":","");
-                var labels = lineSplit[1].Split(';');
-                foreach (var label in labels)
+                var labelArray = lineSplit[1].Split(';');
+                foreach (var label in labelArray)
                 {
                     var labelSplit = label.Split(':');
                     if (labelSplit.Length != 2)
@@ -45,19 +81,22 @@ namespace DataHub.Controllers
                     var confidence = double.Parse(labelSplit[1]);
                     live.Classifications.Add(name, confidence);
                 }
-                if (liveData.ContainsKey(live.Mac))
-                    liveData[live.Mac].Add(live);
+                if (sensorInfo.ContainsKey(live.Mac))
+                    sensorInfo[live.Mac].LiveData.Add(live);
                 else
-                    liveData.Add(live.Mac, new List<LiveData>() { live });
+                {
+                    sensorInfo.Add(live.Mac, new SensorInfo() { LiveData = new List<LiveData> { live }, Label = ""});
+                }
+
             }
-            return true;
+            return GetLabels();
         }
 
         [HttpGet]
         [Route("api/sensor")]
         public Response<List<string>> GetSensors()
         {
-            return new Response<List<string>>() { Data = liveData.Keys.ToList() };
+            return new Response<List<string>>() { Data = sensorInfo.Keys.ToList() };
         }
 
         [HttpGet]
@@ -65,14 +104,26 @@ namespace DataHub.Controllers
         public Response<LiveData[]> GetLiveData(string sensorId)
         {
             List<LiveData> response = new List<LiveData>();
-            if (liveData.Count > 0)
+            if (sensorInfo.Count > 0)
             {
-                foreach (var item in liveData[sensorId])
+                foreach (var item in sensorInfo[sensorId].LiveData)
                 {
                     response.Add(item);
                 }
             }
             return new Response<LiveData[]>() { Data = response.OrderBy(d => d.Time).ToArray() };
+        }
+
+        [HttpGet]
+        [Route("api/sensor/{sensorId}/label")]
+        public Response<string> GetSensorLabel(string sensorId)
+        {
+            if(sensorId == null || !sensorInfo.ContainsKey(sensorId))
+            {
+                return new ErrorResponse<string>();
+            }
+
+            return new Response<string>() { Data = sensorInfo[sensorId].Label };
         }
 
         [HttpGet]
@@ -109,7 +160,7 @@ namespace DataHub.Controllers
         [Route("api/sensor/data")]
         public Response ResetData()
         {
-            liveData.Clear();
+            sensorInfo.Clear();
             return new Response();
         }
     }
