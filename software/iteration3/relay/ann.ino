@@ -14,7 +14,7 @@ networkResult EvaluateNetwork(network* ann, group g) {
   node* current; 
   node* next;
   int nextNodeIndex;
-
+  
   // init node values to zero
   for(l = ann->layers; l < ann->layers + ann->n_layers; l++) {
     for(current = l->nodes; current < l->nodes+l->n_nodes; current++) {
@@ -67,6 +67,10 @@ network initiateRandomNetwork() {
   n.lastResult.results = (double*)malloc(sizeof(double)*n_outputNodes);
 
   n.labels = (char**)malloc(sizeof(char*)*n_outputNodes);
+  for(int i = 0; i < n_outputNodes; i++) {
+    n.labels[i] = (char*)malloc(sizeof(char)*8);
+    strcpy(n.labels[i], ("Label" + String(i)).c_str());
+  }
 
   // for each layer
   for(int i = 0; i < n_layers; i++) {
@@ -87,6 +91,14 @@ network initiateRandomNetwork() {
           double r = ((double) random(1000)/1000.0l) - 0.5l;
           n.layers[i].nodes[j].weights[k] = r;
         }
+      }
+      // Allocate space for weights on bias node
+      n.layers[i].bias.weights = (double*)malloc(sizeof(double)*layerSizes[i+1]);
+      // for each of those weights
+      for(int k = 0; k < layerSizes[i+1]; k++) {
+        // allocate a random value
+        double r = ((double) random(1000)/1000.0l) - 0.5l;
+        n.layers[i].bias.weights[k] = r;
       }
     }
   }

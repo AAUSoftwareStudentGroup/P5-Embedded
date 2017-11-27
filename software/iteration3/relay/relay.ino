@@ -15,15 +15,14 @@ void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);
 
-
-
+  // Create access point
   Serial.println(String("Creating access point \"")+ WIFI_AP_SSID + "\" without password");
   WiFi.mode(WIFI_AP_STA);
   while(!WiFi.softAP(WIFI_AP_SSID)) {
     Serial.println("Failed to create access point");
   }
 
-  // connect to wifi
+  // Connect to wifi
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   Serial.print(String("Connecting to wifi: \"") + WIFI_SSID + "\" with pass: \"" + WIFI_PASS + "\"");
   // Wait for connection
@@ -96,7 +95,8 @@ void relayResult(char* macAddr, networkResult annOut, network* ann) {
   }
 
   if(nextSendTime - (int)millis() < 0 && WiFi.isConnected()) {
-    nextSendTime = millis()+RELAY_BUFFERING_TIME_MS*0;
+    Serial.println(s);
+    nextSendTime = millis()+RELAY_BUFFERING_TIME_MS;
 
     // Connect to server
     if (!client.connect(HTTP_HOST, HTTP_PORT)) {
@@ -110,7 +110,7 @@ void relayResult(char* macAddr, networkResult annOut, network* ann) {
                  "Content-Type: application/json\r\n" \
                  "Content-Length: "+ (s.length()+2) +"\r\n" \
                  "Connection: close\r\n\r\n"+"\"" + s + "\"");
-    Serial.println(s);
+    
     // Wait till done 
     int timeout = millis()+RELAY_HTTP_REQUEST_TIMEOUT_MS;
     while(client.connected()) {
@@ -121,6 +121,9 @@ void relayResult(char* macAddr, networkResult annOut, network* ann) {
       }
       if(client.available()){
         String line = client.readStringUntil('\n');
+        #ifdef DEBUG
+          Serial.println(line);
+        #endif
       }
     }
     client.stop();
@@ -146,9 +149,20 @@ void loop() {
     Serial.println("Mac: " + String(macAddrStr));
     group shot = getShotsFromNodeInput((char*)nodebuffer);
     
+    #ifdef SERIALPRINTSHOT
+      Serial.println("Length: " + String(shot.length));
+      for(int i = 0; i < shot.length; i++) {
+        Serial.println(String(i) + ".X : " + String(shot.datapoints[i].X));
+        Serial.println(String(i) + ".Y : " + String(shot.datapoints[i].Y));
+        Serial.println(String(i) + ".Z : " + String(shot.datapoints[i].Z));
+        Serial.println(String(i) + ".RX: " + String(shot.datapoints[i].RX));
+      }
+    #endif
+
     // evaluate network
     Serial.println("Evaluating network");
     networkResult annOut = EvaluateNetwork(&neuralNet, shot);
+
     // Free shot array
     free(shot.datapoints);
 

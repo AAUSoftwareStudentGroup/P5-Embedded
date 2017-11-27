@@ -15,6 +15,10 @@
 	// Enable debug print
 	#define DEBUG
 
+	#ifdef DEBUG
+		#define SERIALPRINTSHOT
+	#endif
+
 	// Encog parser configuration
 	#define ENCOG_LABEL_MAX_LENGTH 16 				// Size of buffer wherein ENCOG labels are read into
 	#define ENCOG_FORCE_OVERWRITE_MODEL true		// ReWrite the default model on boot
@@ -23,7 +27,9 @@
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "wet76shut"
+	#define WIFI_PASS "feeble25plough"
+//	#define WIFI_SSID "Tardis"
+//	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085
 	#define HTTP_HOST "p5datahub.azurewebsites.net"
 	#define HTTP_PORT 80
