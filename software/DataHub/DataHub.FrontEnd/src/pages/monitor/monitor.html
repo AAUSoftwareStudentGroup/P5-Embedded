@@ -11,9 +11,11 @@
 		<div class="list">
 				<div class="box">
 					<div *ngFor="let sensor of sensors">
+						<input (keyup)="checkEnter($event, sensor)" placeholder="Change label ...">
+						<p>{{values}}</p>
 						<chart class="chart-half" [options]="dataChartOptions" (load)="saveInstance($event.context, sensor)"></chart>
 					</div>
 				</div>
-			</div>
+		</div>
 	</div>
 </div>

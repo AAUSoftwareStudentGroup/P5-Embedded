@@ -1,14 +1,18 @@
 import { Component } from '@angular/core';
 import { Service } from '../../services/service';
 import { ActivatedRoute } from '@angular/router';
+import { Label } from '../label/label';
 
 
 @Component({
     templateUrl: './monitor.html'
 })
+
 export class Monitor {
     public chart;
     public name = 'Loading';
+    public labels = [];
+    public newLabelName = "";
 
     public dataChartOptions = {
         chart: {
@@ -21,6 +25,7 @@ export class Monitor {
         },
 
         title: {
+            useHTML: true,
             text: 'Loading'
         },
 
@@ -84,7 +89,11 @@ export class Monitor {
                         labels.push(label);
                         values.push(data['Data'][label]);
                     }
-                    chartInstance.setTitle({text: sensor});
+                    that.service.fetchSensorLabel(sensor).then(
+                        labelResponse => {
+                            chartInstance.setTitle({text: sensor + ' - ' + labelResponse['Data']});
+                        }
+                    )
                     chartInstance.xAxis[0].categories = labels;
                     chartInstance.series[0].setData(values);
                 }
@@ -98,6 +107,24 @@ export class Monitor {
             clearInterval(this.timers[i]);
         }
         this.service.resetSensorData().then();
+    }
+
+    public changeExistingLabel(id, label) {
+        this.service.changeLabel(id, label).then(
+            data => {
+                if(data['Success']) {
+                    this.labels = data['Data'];
+                    this.newLabelName = "";
+                }
+            }
+        )
+    }
+
+    public checkEnter(event, sensor) {
+        console.log("sensorId: " + sensor);
+        if((event as KeyboardEvent).key == "Enter"){
+            this.changeExistingLabel(sensor, event.target.value);
+        }
     }
 
     private paramsSubscription;

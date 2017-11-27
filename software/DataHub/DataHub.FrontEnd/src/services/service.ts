@@ -2,18 +2,28 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
+import { Headers } from '@angular/http';
+import { HttpHeaders } from '@angular/common/http';
 
 @Injectable()
 export class Service {
   
     constructor(private http: HttpClient) { }
     
-    private TEST = false;
+    private TEST = true;
 
     private API_URL = this.TEST ? "http://localhost:65230" : "https://p5datahub.azurewebsites.net";
 
     public fetchData(id) {
         return this.http.get(this.API_URL + "/api/dataset/" + id + "/data")
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            }); 
+    }
+
+    public fetchSensorLabel(id) {
+        return this.http.get(this.API_URL + "/api/sensor/" + id + "/label")
             .toPromise()
             .catch(error => {
                 console.debug('Error fetching accounts: ' + error.message);
@@ -126,6 +136,24 @@ export class Service {
 
     public addLabel(label) {
         return this.http.post(this.API_URL + "/api/label", label)
+            .toPromise()
+            .catch(error => {
+                console.debug('Error fetching accounts: ' + error.message);
+            });
+    }
+
+    //public changeLabel(id, label) {
+        //let headers = new HttpHeaders();
+        //headers.set('Content-Type', 'application/json');
+        //return this.http.post(this.API_URL + "/api/sensor/" + id + "/label/", '"${label}"',  {headers: headers})
+        //.toPromise()
+        //.catch(error => {
+        //    console.debug('Error fetching accounts: ' + error.message);
+        //});
+    //}
+
+    public changeLabel(id, label) {
+        return this.http.post(this.API_URL + "/api/sensor/" + id + "/" + label, id, label)
             .toPromise()
             .catch(error => {
                 console.debug('Error fetching accounts: ' + error.message);

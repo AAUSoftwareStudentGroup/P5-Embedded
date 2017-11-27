@@ -29,8 +29,8 @@ namespace DataHub.Controllers
         static Dictionary<string, SensorInfo> sensorInfo = new Dictionary<string, SensorInfo>();
 
         [HttpPost]
-        [Route("api/sensor/{sensorId}/label")]
-        public Response<string> SetLabel(string sensorId, [FromBody]string label)
+        [Route("api/sensor/{sensorId}/{label}")]
+        public Response<string> SetLabel(string sensorId, string label)
         {
             if (sensorInfo.ContainsKey(sensorId))
             {
