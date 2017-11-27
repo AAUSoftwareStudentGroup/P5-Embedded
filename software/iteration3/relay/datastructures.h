@@ -21,8 +21,9 @@ typedef struct _group
 typedef struct _node {
   // there are as many weights as there are nodes in the next layer
   double* weights;
-  double val;
-  double error;
+  double val; // sum of weighted inputs
+  double out; // after activation function
+  double error; // error value of a node (used during training)
   // int n_weights; 
 } node;
 

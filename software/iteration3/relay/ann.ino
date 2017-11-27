@@ -9,6 +9,11 @@ inline double sigmoid(double x) {
   return 1.0l / (1.0l + exp((double) -x) );
 }
 
+inline double derivedSigmoid(double x) {
+  double a = sigmoid(x);
+  return a*(1-a);
+}
+
 networkResult EvaluateNetwork(network* ann, group g) {
   layer* l;
   node* current; 
@@ -19,34 +24,35 @@ networkResult EvaluateNetwork(network* ann, group g) {
   for(l = ann->layers; l < ann->layers + ann->n_layers; l++) {
     for(current = l->nodes; current < l->nodes+l->n_nodes; current++) {
       current->val = 0;
+      current->out = 0;
     }
   }
 
   l = ann->layers;
   for(int i = 0; i < 10; i++) {
-    l->nodes[i*4 + 0].val = g.datapoints[i].X;
-    l->nodes[i*4 + 1].val = g.datapoints[i].Y;
-    l->nodes[i*4 + 2].val = g.datapoints[i].Z;
-    l->nodes[i*4 + 3].val = g.datapoints[i].RX;
+    l->nodes[i*4 + 0].out = g.datapoints[i].X;
+    l->nodes[i*4 + 1].out = g.datapoints[i].Y;
+    l->nodes[i*4 + 2].out = g.datapoints[i].Z;
+    l->nodes[i*4 + 3].out = g.datapoints[i].RX;
   }
 
   // loop through layers
   for(l = ann->layers; l < ann->layers + ann->n_layers-1; l++) {
     for(current = l->nodes; current < l->nodes+l->n_nodes; current++) {
       for(nextNodeIndex = 0, next = (l+1)->nodes; nextNodeIndex < (l+1)->n_nodes; nextNodeIndex++, next++) {
-        next->val += current->val*current->weights[nextNodeIndex];
+        next->val += current->out*current->weights[nextNodeIndex];
       }
     }
     for(nextNodeIndex = 0, next = (l+1)->nodes; nextNodeIndex < (l+1)->n_nodes; nextNodeIndex++, next++) {
       next->val += l->bias.weights[nextNodeIndex];
-      next->val = sigmoid(next->val);
+      next->out = sigmoid(next->val);
     }
   }
 
   // copy final layer node values to result vector
   l = ann->layers+ann->n_layers-1;
   for(int i = 0; i < l->n_nodes; i++) {
-    ann->lastResult.results[i] = l->nodes[i].val;
+    ann->lastResult.results[i] = l->nodes[i].out;
   }
 
   return ann->lastResult;
@@ -128,8 +134,9 @@ bool _calculateOutputError(network n, networkResult expectedOutput) {
   }
 
   for(int i = 0; i < outputLayer->n_nodes; i++) {
-    error = outputLayer->nodes[i].val - expectedOutput.results[i];
-    error = 0.5*(error*error);
+    // error = (expected-result)*derivedSigmoid(val)
+    error = (expectedOutput.results[i] - outputLayer->nodes[i].out);
+    error *= derivedSigmoid(outputLayer->nodes[i].val);
     outputLayer->nodes[i].error = error;
   }
   return true; 
@@ -142,15 +149,13 @@ void _backpropogateErrorValues(network n){
   for(int i = layerOut; i >= 1; i--){
     // iterate over all the nodes in the current layer
     for(int j = 0; j < n.layers[i].n_nodes; j++){
-      // calculate error term for the node
-      
-      double errorSum = 0; // sum of (errors times weights)
-      double nodeVal = n.layers[i].nodes[j].val; // current node value
 
+      // calculate error term for the node
+      double errorSum = 0; // sum of (errors times weights)
       for(int k = 0; k < n.layers[i + 1].n_nodes; k++){
         errorSum += n.layers[i + 1].nodes[k].error * n.layers[i].nodes[j].weights[k];
       }
-      n.layers[i].nodes[j].error = nodeVal * (1.0l - nodeVal) * errorSum;
+      n.layers[i].nodes[j].error = errorSum * derivedSigmoid(n.layers[i].nodes[j].val);
     }
   }
 }
@@ -166,9 +171,9 @@ void _updateWeights(network n, double learningRate) {
         double newWeight;
         double oldWeight          = n.layers[i].nodes[j].weights[k];
         double weightTargetError  = n.layers[i+1].nodes[k].error;
-        double weightOriginValue  = n.layers[i].nodes[j].val;
+        double weightOriginOutput = n.layers[i].nodes[j].out;
         
-        newWeight = oldWeight + (learningRate*weightTargetError*weightOriginValue);
+        newWeight = oldWeight + (learningRate*weightTargetError*weightOriginOutput);
         n.layers[i].nodes[j].weights[k] = newWeight;
       }
     }
@@ -180,9 +185,9 @@ void _updateWeights(network n, double learningRate) {
         double newWeight;
         double oldWeight          = n.layers[i].bias.weights[k];
         double weightTargetError  = n.layers[i+1].nodes[k].error;
-        double weightOriginValue  = n.layers[i].bias.val;
+        double weightOriginOutput = n.layers[i].bias.out;
         
-        newWeight = oldWeight + (learningRate*weightTargetError*weightOriginValue);
+        newWeight = oldWeight + (learningRate*weightTargetError*weightOriginOutput);
         n.layers[i].bias.weights[k] = newWeight;
       }
     }
