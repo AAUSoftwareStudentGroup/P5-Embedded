@@ -100,6 +100,7 @@ network initiateRandomNetwork() {
       }
       // Allocate space for weights on bias node
       n.layers[i].bias.weights = (double*)malloc(sizeof(double)*layerSizes[i+1]);
+      n.layers[i].bias.out = 1;
       // for each of those weights
       for(int k = 0; k < layerSizes[i+1]; k++) {
         // allocate a random value
