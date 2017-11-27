@@ -1,0 +1,21 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<h2 style="display:inline-block">Monitor</h2>
+		<img src="/assets/gfx/delete-icon.png" (click)="reset()" class="add-icon">
+		<div *ngIf="loading" style="z-index: 9; top: 50%; left:50%; margin-left: -25px; position: absolute;">
+			<div class="center upload-button">
+				<img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+				Loading
+			</div>
+		</div>
+		<div class="list">
+				<div class="box">
+					<div *ngFor="let sensor of sensors">
+						<input (keyup)="checkEnter($event, sensor)" placeholder="Change label ...">
+						<p>{{values}}</p>
+						<chart class="chart-half" [options]="dataChartOptions" (load)="saveInstance($event.context, sensor)"></chart>
+					</div>
+				</div>
+		</div>
+	</div>
+</div>

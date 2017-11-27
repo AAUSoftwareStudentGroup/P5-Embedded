@@ -21,6 +21,7 @@ import { NewModelType } from '../pages/newmodeltype/newmodeltype';
 import { Test } from '../pages/test/test';
 import { NewTest } from '../pages/newtest/newtest';
 import { TestResult } from '../pages/testresult/testresult';
+import { Monitor } from '../pages/monitor/monitor';
 
 export const routes: Routes = [
   { path: 'dataset/:id', component: DataSet },
@@ -35,7 +36,8 @@ export const routes: Routes = [
   { path: 'newmodeltype/:id', component: NewModelType },
   { path: 'test', component: Test },
   { path: 'test/:id', component: TestResult },
-  { path: 'newtest', component: NewTest }
+  { path: 'newtest', component: NewTest },
+  { path: 'monitor', component: Monitor }
 ];
 
 declare var require: any;
@@ -60,7 +62,8 @@ export function highchartsFactory() {
     NewModelType,
     Test,
     TestResult,
-    NewTest
+    NewTest,
+    Monitor
   ],
   imports: [
     BrowserModule,

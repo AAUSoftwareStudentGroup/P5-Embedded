@@ -31,5 +31,6 @@ private currentPath = "/data";
     { name: "Label", path: "/label", icon: "/assets/gfx/label-icon.png" },
     { name: "Model", path: "/model", icon: "/assets/gfx/models-icon.png" },
     { name: "Test", path: "/test", icon: "/assets/gfx/test-icon.png" },
+    { name: "Monitor", path: "/monitor", icon: "/assets/gfx/monitor-icon.png" },
   ];
 }
