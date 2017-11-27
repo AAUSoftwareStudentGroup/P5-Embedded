@@ -1,6 +1,6 @@
 current_dir = $(shell pwd)/
 
-parts = pcbBottomBox pcbTopBox batteryBox
+parts = pcbBottomBox pcbTopBox batteryBox tinySwitchAdapter
 slicingProfile = curaSlicerProfiles/hipsCoarseProfile.ini
 
 all: prepare $(parts)
