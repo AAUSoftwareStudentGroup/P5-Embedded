@@ -10,8 +10,10 @@
 
 	#define DEBUG
 
-	#define WIFI_SSID "Tardis"
+	#define WIFI_SSID "wifi"
 	#define WIFI_USE_PASS true
-	#define WIFI_PASS "geronimo"
+	#define WIFI_PASS "TannerHelland"
+
+	#define UDP_PORT 8085
 
 #endif

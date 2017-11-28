@@ -27,17 +27,17 @@ void setup_wifi() {
   WiFi.macAddress(MACAddr);
   sprintf(macstr, "%02X:%02X:%02X:%02X:%02X:%02X", MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
   
-  client.begin(8085);
+  client.begin(UDP_PORT);
 }
 
 void wifi_write(String str) {
-  client.beginPacket(recieverIP, 8085);
+  client.beginPacket(recieverIP, UDP_PORT);
   client.write(str.c_str(), str.length());
   client.endPacket();
 }
 
 void wifi_write(char* arr, int length) {
-  client.beginPacket(recieverIP, 8085);
+  client.beginPacket(recieverIP, UDP_PORT);
   client.write(arr, length);
   client.endPacket();
 }
