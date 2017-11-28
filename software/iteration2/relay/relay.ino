@@ -3,8 +3,11 @@
 #include <stdlib.h>
 
 #define WIFI_AP_SSID "FootballRelay"
-#define WIFI_SSID "wifi"
-#define WIFI_PASS "TannerHelland"
+// #define WIFI_SSID "wifi"
+// #define WIFI_PASS "TannerHelland"
+
+#define WIFI_SSID "AAU-1-DAY"
+#define WIFI_PASS "nut27bulb"
 #define UDP_PORT 8085
 #define HTTP_HOST "p5datahub.azurewebsites.net"
 #define HTTP_PORT 80
@@ -47,7 +50,7 @@ void setup() {
   }
 
   // Start udp socket
-  while(UDP.begin(8085) == 0);
+  while(UDP.begin(UDP_PORT) == 0);
   s = "";
 }
 

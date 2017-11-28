@@ -4,10 +4,11 @@
 #include "datastructures.h"
 #include "config.h"
 #include "ann.h"
-#include "wifi.h"
+// #include "wifi.h"
 
 static int LED_state = 0;
 WiFiClient client;
+WiFiUDP UDP;
 network neuralNet;
 
 void setup() {
@@ -31,17 +32,17 @@ void setup() {
     delay(500);
     digitalWrite(PIN_LED, LED_state++ % 2);
   }
-  Serial.println("");
 
   // create ANN
   Serial.println("- ANN");
-  setup_neuralNetwork();
   neuralNet = initiateRandomNetwork();
   
   // Start udp socket
-  while(UDP.begin(8085) == 0);
+  Serial.println("- UDP socket");
+  while(UDP.begin(UDP_PORT) == 0);
 
   randomSeed(micros());
+  Serial.println("SETUP: DONE!");
 }
 
 char* getMacFromNodeInput(char** buffer) {
@@ -91,11 +92,12 @@ void relayResult(char* macAddr, networkResult annOut, network* ann) {
 
   String s = String(macAddr) + "#";
   for(int i = 0; i < annOut.length; i++) {
-      s += String(ann->labels[i]) + ":" + String(annOut.results[i], 8) + ";";
+    s += String(ann->labels[i]) + ":" + String(annOut.results[i], 8) + ";";
   }
 
+  Serial.println(s);
+
   if(nextSendTime - (int)millis() < 0 && WiFi.isConnected()) {
-    Serial.println(s);
     nextSendTime = millis()+RELAY_BUFFERING_TIME_MS;
 
     // Connect to server
@@ -121,9 +123,9 @@ void relayResult(char* macAddr, networkResult annOut, network* ann) {
       }
       if(client.available()){
         String line = client.readStringUntil('\n');
-        #ifdef DEBUG
-          Serial.println(line);
-        #endif
+        Serial.print("[DATAHUB] ");
+        Serial.print(line);
+        Serial.println(" [/DATAHUB]");
       }
     }
     client.stop();
@@ -131,43 +133,51 @@ void relayResult(char* macAddr, networkResult annOut, network* ann) {
 }
 
 void loop() {
-  static char* nodebuffer = (char*)malloc(sizeof(char)*NODE_BUFFER_SIZE);
+  static char* udpInputBuffer = (char*)malloc(sizeof(char)*NODE_BUFFER_SIZE);
+  static double result[2] = {1, 0};
+  char* nodebuffer = udpInputBuffer;
   char* macAddrStr;
+  // Serial.println("Checking if theres packets");
 
   // if theres data
   if(UDP.parsePacket()) {
     // data format: mac#1.23:4.56:1.23:4.56;1.23:4.56:1.23:4.56; * 12
-    Serial.println("Dingding");
-    int len = UDP.read(nodebuffer, NODE_BUFFER_SIZE);
+    // Serial.println("Got packet!");
+    int len = UDP.read(nodebuffer, NODE_BUFFER_SIZE-1);
     nodebuffer[len] = '\0'; 
     
     // save mac for writing output later
-    Serial.println("nodebuffer: " + String(nodebuffer));
+    // Serial.println("nodebuffer: " + String(nodebuffer));
     macAddrStr = getMacFromNodeInput(&nodebuffer);
     
     // parse data as input for ann
-    Serial.println("Mac: " + String(macAddrStr));
+    // Serial.println("Mac: " + String(macAddrStr));
     group shot = getShotsFromNodeInput((char*)nodebuffer);
     
-    #ifdef SERIALPRINTSHOT
-      Serial.println("Length: " + String(shot.length));
-      for(int i = 0; i < shot.length; i++) {
-        Serial.println(String(i) + ".X : " + String(shot.datapoints[i].X));
-        Serial.println(String(i) + ".Y : " + String(shot.datapoints[i].Y));
-        Serial.println(String(i) + ".Z : " + String(shot.datapoints[i].Z));
-        Serial.println(String(i) + ".RX: " + String(shot.datapoints[i].RX));
-      }
-    #endif
+    // #ifdef SERIALPRINTSHOT
+    //   Serial.println("Length: " + String(shot.length));
+    //   for(int i = 0; i < shot.length; i++) {
+    //     Serial.println(String(i) + ".X : " + String(shot.datapoints[i].X));
+    //     Serial.println(String(i) + ".Y : " + String(shot.datapoints[i].Y));
+    //     Serial.println(String(i) + ".Z : " + String(shot.datapoints[i].Z));
+    //     Serial.println(String(i) + ".RX: " + String(shot.datapoints[i].RX));
+    //   }
+    // #endif
 
     // evaluate network
-    Serial.println("Evaluating network");
-    networkResult annOut = EvaluateNetwork(&neuralNet, shot);
+    // Serial.println("Evaluating network");
+
+    example e;
+    e.input = shot;
+    e.output = {result, 2};
+
+    networkResult annOut = trainNetwork(&neuralNet, &e, 1);
+    // networkResult annOut = EvaluateNetwork(&neuralNet, shot);
 
     // Free shot array
     free(shot.datapoints);
 
     // send network result with mac prepended
-    Serial.println("Sending result");
     relayResult(macAddrStr, annOut, &neuralNet);
   }
 }

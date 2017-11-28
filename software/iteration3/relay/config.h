@@ -27,7 +27,7 @@
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "feeble25plough"
+	#define WIFI_PASS "nut27bulb"
 //	#define WIFI_SSID "Tardis"
 //	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085
@@ -39,6 +39,6 @@
 	#define NODE_BUFFER_SIZE 3000
 	#define NODE_BUFFER_LENGTH 3000
 
-	#define LEARNING_RATE 0.1
+	#define LEARNING_RATE 0.5
 
 #endif

@@ -1,10 +1,5 @@
 #include "ann.h"
 
-void setup_neuralNetwork() {
-  // parseEncogModel_setup();
-  // ann = parseEncogModel();
-}
-
 inline double sigmoid(double x) {
   return 1.0l / (1.0l + exp((double) -x) );
 }
@@ -60,7 +55,7 @@ networkResult EvaluateNetwork(network* ann, group g) {
 
 network initiateRandomNetwork() {
   const int n_layers = 3;
-  int layerSizes[n_layers] = {40, 100, 2};
+  int layerSizes[n_layers] = {40, 40, 2};
 
   network n;
 
@@ -112,34 +107,34 @@ network initiateRandomNetwork() {
   return n;
 }
 
-void deallocateNetwork(network n) {
+void deallocateNetwork(network* n) {
   // free layers
-  for(int i = 0; i < n.n_layers; i++) {
+  for(int i = 0; i < n->n_layers; i++) {
     // free the layers nodes
-    for(int j = 0; j < n.layers[i].n_nodes; j++) {
-      free(n.layers[i].nodes[j].weights);
+    for(int j = 0; j < n->layers[i].n_nodes; j++) {
+      free(n->layers[i].nodes[j].weights);
     } 
-    free(n.layers[i].nodes);
+    free(n->layers[i].nodes);
 
     // free the layers bias nodes weights
-    free(n.layers[i].bias.weights);
+    free(n->layers[i].bias.weights);
   }
-  free(n.layers);
+  free(n->layers);
 
   // free labels
-  for(int i = 0; i < n.lastResult.length; i++) {
-    free(n.labels[i]);
+  for(int i = 0; i < n->lastResult.length; i++) {
+    free(n->labels[i]);
   }
-  free(n.labels);
+  free(n->labels);
 
   // free lastResult
-  free(n.lastResult.results);
+  free(n->lastResult.results);
 }
 
 
-bool _calculateOutputError(network n, networkResult expectedOutput) {
+bool _calculateOutputError(network* n, networkResult expectedOutput) {
   double error; // error of a single output node
-  layer* outputLayer = n.layers+(n.n_layers-1);
+  layer* outputLayer = n->layers+(n->n_layers-1);
   
   // if length of expected and actual output does not match
   if(outputLayer->n_nodes != expectedOutput.length) {
@@ -155,64 +150,64 @@ bool _calculateOutputError(network n, networkResult expectedOutput) {
   return true; 
 }
 
-void _backpropogateErrorValues(network n){
+void _backpropogateErrorValues(network* n){
   // calculate the index of the second last layer.
-  int layerOut = n.n_layers - 2;
+  int layerOut = n->n_layers - 2;
   // iterate over all layers except the first and last
   for(int i = layerOut; i >= 1; i--){
     // iterate over all the nodes in the current layer
-    for(int j = 0; j < n.layers[i].n_nodes; j++){
+    for(int j = 0; j < n->layers[i].n_nodes; j++){
 
       // calculate error term for the node
       double errorSum = 0; // sum of (errors times weights)
-      for(int k = 0; k < n.layers[i + 1].n_nodes; k++){
-        errorSum += n.layers[i + 1].nodes[k].error * n.layers[i].nodes[j].weights[k];
+      for(int k = 0; k < n->layers[i + 1].n_nodes; k++){
+        errorSum += n->layers[i + 1].nodes[k].error * n->layers[i].nodes[j].weights[k];
       }
-      n.layers[i].nodes[j].error = errorSum * derivedSigmoid(n.layers[i].nodes[j].val);
+      n->layers[i].nodes[j].error = errorSum * derivedSigmoid(n->layers[i].nodes[j].val);
     }
   }
 }
 
-void _updateWeights(network n, double learningRate) {
+void _updateWeights(network* n, double learningRate) {
   // for all layers except last
-  for(int i = 0; i < n.n_layers-1; i++) {
+  for(int i = 0; i < n->n_layers-1; i++) {
     // for each node in that layer
-    for(int j = 0; j < n.layers[i].n_nodes; j++) {
+    for(int j = 0; j < n->layers[i].n_nodes; j++) {
       // for each outgoing weight 
       // (number of outgoing weights is the same as the number of nodes in the next layer)
-      for(int k = 0; k < n.layers[i+1].n_nodes; k++) {
+      for(int k = 0; k < n->layers[i+1].n_nodes; k++) {
         double newWeight;
-        double oldWeight          = n.layers[i].nodes[j].weights[k];
-        double weightTargetError  = n.layers[i+1].nodes[k].error;
-        double weightOriginOutput = n.layers[i].nodes[j].out;
+        double oldWeight          = n->layers[i].nodes[j].weights[k];
+        double weightTargetError  = n->layers[i+1].nodes[k].error;
+        double weightOriginOutput = n->layers[i].nodes[j].out;
         
         newWeight = oldWeight + (learningRate*weightTargetError*weightOriginOutput);
-        n.layers[i].nodes[j].weights[k] = newWeight;
+        n->layers[i].nodes[j].weights[k] = newWeight;
       }
     }
     // also handle the bias nodes weights
     {
       // for each outgoing weight
       // (number of outgoing weights is the same as the number of nodes in the next layer)
-      for(int k = 0; k < n.layers[i+1].n_nodes; k++) {
+      for(int k = 0; k < n->layers[i+1].n_nodes; k++) {
         double newWeight;
-        double oldWeight          = n.layers[i].bias.weights[k];
-        double weightTargetError  = n.layers[i+1].nodes[k].error;
-        double weightOriginOutput = n.layers[i].bias.out;
+        double oldWeight          = n->layers[i].bias.weights[k];
+        double weightTargetError  = n->layers[i+1].nodes[k].error;
+        double weightOriginOutput = n->layers[i].bias.out;
         
         newWeight = oldWeight + (learningRate*weightTargetError*weightOriginOutput);
-        n.layers[i].bias.weights[k] = newWeight;
+        n->layers[i].bias.weights[k] = newWeight;
       }
     }
   }
 }
 
-void trainNetwork(network* n, example* examples, int n_examples) {
-
+networkResult trainNetwork(network* n, example* examples, int n_examples) {
+  networkResult res;
   // for each example
   for(int i = 0; i < n_examples; i++) {
     // feed it though the network
-    EvaluateNetwork(n, examples[i].input);
+    res = EvaluateNetwork(n, examples[i].input);
 
     // calculate squared errors on the output
     _calculateOutputError(n, examples[i].output);
@@ -223,4 +218,6 @@ void trainNetwork(network* n, example* examples, int n_examples) {
     // update weights based on errors
     _updateWeights(n, LEARNING_RATE);
   }
+
+  return res;
 }

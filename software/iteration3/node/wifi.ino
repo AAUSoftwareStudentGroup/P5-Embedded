@@ -26,7 +26,7 @@ void setup_wifi() {
 
   // Read MAC address
   WiFi.macAddress(MACAddr);
-  sprintf(macstr, "%02X:%02X:%02X:%02X:%02X:%02X", MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
+  sprintf(macstr, "%02X%02X%02X%02X%02X%02X", MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
   
   // Start listening on port 8085
   client.begin(UDP_PORT);
