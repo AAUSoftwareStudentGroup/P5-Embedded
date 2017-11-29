@@ -11,10 +11,13 @@
 		<div class="list">
 				<div class="box">
 					<div *ngFor="let sensor of sensors">
-						<select [ngModel]="sensor.CurrentLabel" (ngModelChange)="labelChanged(sensor.Mac, $event)">
-							<option *ngFor="let label of sensor.Labels">{{label}}</option>
-						</select>
-						<chart class="chart-half" [options]="dataChartOptions" (load)="saveInstance($event.context, sensor.Mac)"></chart>
+						<div style="text-align: left">
+							<select class="input-field" style="width:25%;margin-left:0px;" [ngModel]="sensor.CurrentLabel" (ngModelChange)="labelChanged(sensor.Mac, $event)">
+								<option value="none">none</option>
+								<option *ngFor="let label of sensor.Labels" ng-value="label">{{label}}</option>
+							</select>
+						</div>
+						<chart class="chart-half" [options]="dataChartOptions" (load)="saveInstance($event.context, sensor)"></chart>
 					</div>
 				</div>
 		</div>

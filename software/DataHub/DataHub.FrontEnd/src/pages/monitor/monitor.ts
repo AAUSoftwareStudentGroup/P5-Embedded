@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Service } from '../../services/service';
 import { ActivatedRoute } from '@angular/router';
 import { Label } from '../label/label';
+import { startTimeRange } from '@angular/core/src/profile/wtf_impl';
 
 
 @Component({
@@ -62,27 +63,46 @@ export class Monitor {
         private route: ActivatedRoute
     ) { }
 
+    public syncronize(list1 : any[], list2 : any[], comparer : ((a:any, b:any) => boolean)) {
+        for(let i = 0; i < list2.length; i++) {
+            if(list1.filter((s) => comparer(s, list2[i])).length == 0) {
+                list1.push(list2[i]);
+            }
+        }
+
+        for(let i = 0; i < list1.length; i++){
+            if(list2.filter((s) => comparer(s, list1[i])).length == 0){
+                list1.splice(i, 1);
+            }
+        }
+    }
+
+    private sensorTimer = null;
+
     ngOnInit() {
+        this.startSensorTimer();
+    }
+
+    private startSensorTimer() {
         var that = this;
-        setInterval(function() {
-            that.service.fetchSensors().then(
-                data => {
-                    // that.sensors = data['Data'];
-                    for(let i = 0; i < data['Data'].length; i++) {
-                        if(that.sensors.filter((s) => s.Mac == data['Data'][i].Mac).length == 0) {
-                            that.sensors.push(data['Data'][i]);
-                        }
-                    }
+        this.sensorTimer = setInterval(function() {
+            if(that.resetSensors) {
+                that.resetSensors = false;
+                clearInterval(that.sensorTimer);
+                that.service.resetSensorData().then(data => {that.startSensorTimer();});
+            } else {
+                that.service.fetchSensors().then(
+                    data => {
+                        that.syncronize(that.sensors, data['Data'], (a,b) => a.Mac == b.Mac);
 
-                    for(let i = 0; i < that.sensors.length; i++){
-                        if(data['Data'].filter((s) => s.Mac == that.sensors[i].Mac).length == 0){
-                            that.sensors.splice(i, 1);
+                        for(let i = 0; i < Math.min(that.sensors.length, data['Data'].length); i++) {
+                            that.syncronize(that.sensors[i].Labels, data['Data'][i].Labels, (a, b) => a == b);
                         }
-                    }
 
-                    that.loading = false;
-                }
-            );
+                        that.loading = false;
+                    }
+                );
+            }
         }, 1000);
     }
 
@@ -97,7 +117,7 @@ export class Monitor {
     public saveInstance(chartInstance, sensor) {
         var that = this;
         this.timers.push(setInterval(function() {
-            that.service.fetchSensorAccumulatedData(sensor).then(
+            that.service.fetchSensorAccumulatedData(sensor.Mac).then(
                 data => {
                     var labels = [];
                     var values = [];
@@ -107,9 +127,10 @@ export class Monitor {
                         labels.push(label);
                         values.push(data['Data'][label]);
                     }
-                    that.service.fetchSensorLabel(sensor).then(
+                    that.service.fetchSensorLabel(sensor.Mac).then(
                         labelResponse => {
-                            chartInstance.setTitle({text: sensor + ' - ' + labelResponse['Data']});
+                            sensor.CurrentLabel = labelResponse['Data'];
+                            chartInstance.setTitle({text: sensor.Mac + ' - ' + labelResponse['Data']});
                         }
                     )
                     chartInstance.xAxis[0].categories = labels;
@@ -119,12 +140,14 @@ export class Monitor {
         }, 1000));
     }
 
+    private resetSensors = false;
+
     public reset() {
         for(let i = 0; i < this.timers.length; i++)
         {
             clearInterval(this.timers[i]);
         }
-        this.service.resetSensorData().then();
+        this.resetSensors = true;
     }
 
     public changeExistingLabel(id, label) {

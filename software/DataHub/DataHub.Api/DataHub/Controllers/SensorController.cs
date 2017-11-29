@@ -89,10 +89,16 @@ namespace DataHub.Controllers
                     live.Classifications.Add(name, confidence);
                 }
                 if (sensorInfo.ContainsKey(live.Mac))
+                {
                     sensorInfo[live.Mac].LiveData.Add(live);
+                    if(!live.Classifications.ContainsKey(sensorInfo[live.Mac].Label))
+                    {
+                        sensorInfo[live.Mac].Label = "none";
+                    }
+                }
                 else
                 {
-                    sensorInfo.Add(live.Mac, new SensorInfo() { LiveData = new List<LiveData> { live }, Label = ""});
+                    sensorInfo.Add(live.Mac, new SensorInfo() { LiveData = new List<LiveData> { live }, Label = "none"});
                 }
 
             }
@@ -147,14 +153,15 @@ namespace DataHub.Controllers
         [Route("api/sensor/{sensorId}/data/{windowSize}")]
         public Response<Dictionary<string, double>> GetAccumulatedLiveData(string sensorId, int? windowSize)
         {
-            windowSize = Math.Max(1, windowSize ?? 50);
+            windowSize = Math.Max(1, windowSize ?? 10);
             Dictionary<string, List<double>> grouped = new Dictionary<string, List<double>>();
 
             var ordered = GetLiveData(sensorId).Data;
+            var sensors = GetSensors().Data;
 
             foreach (var data in ordered.Reverse().Take(windowSize.Value).Reverse()) //Last 20 classifications
             {
-                foreach (var classification in data.Classifications)
+                foreach (var classification in data.Classifications.Where(c => sensors.FirstOrDefault(s => s.Mac == data.Mac).Labels.Contains(c.Key)))
                 {
                     if (grouped.ContainsKey(classification.Key))
                         grouped[classification.Key].Add(classification.Value);
