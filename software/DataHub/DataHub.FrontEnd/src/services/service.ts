@@ -10,7 +10,7 @@ export class Service {
   
     constructor(private http: HttpClient) { }
     
-    private TEST = true;
+    private TEST = false;
 
     private API_URL = this.TEST ? "http://localhost:65230" : "https://p5datahub.azurewebsites.net";
 

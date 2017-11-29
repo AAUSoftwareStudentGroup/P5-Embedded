@@ -49,7 +49,7 @@ namespace DataHub.Controllers
             string labelString = "";
             foreach (var item in sensorInfo)
             {
-                labelString += $"{item.Key}#{item.Value.Label}\r\n";
+                labelString += $"{item.Key}#{item.Value.Label};";
             }
 
             return labelString;
@@ -89,6 +89,7 @@ namespace DataHub.Controllers
                 }
 
             }
+            this.Request.Content = new StringContent(GetLabels());
             return GetLabels();
         }
 
