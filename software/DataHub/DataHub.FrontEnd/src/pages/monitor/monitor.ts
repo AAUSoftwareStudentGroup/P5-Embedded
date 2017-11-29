@@ -67,14 +67,32 @@ export class Monitor {
         setInterval(function() {
             that.service.fetchSensors().then(
                 data => {
-                    that.sensors = data['Data'];
+                    // that.sensors = data['Data'];
+                    for(let i = 0; i < data['Data'].length; i++) {
+                        if(that.sensors.filter((s) => s.Mac == data['Data'][i].Mac).length == 0) {
+                            that.sensors.push(data['Data'][i]);
+                        }
+                    }
+
+                    for(let i = 0; i < that.sensors.length; i++){
+                        if(data['Data'].filter((s) => s.Mac == that.sensors[i].Mac).length == 0){
+                            that.sensors.splice(i, 1);
+                        }
+                    }
+
                     that.loading = false;
                 }
             );
         }, 1000);
     }
 
+    public labelChanged(mac, label){
+        this.changeExistingLabel(mac, label);
+    }
+
     public timers = [];
+
+    public sensorLabels = [];
 
     public saveInstance(chartInstance, sensor) {
         var that = this;

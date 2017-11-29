@@ -25,6 +25,13 @@ namespace DataHub.Controllers
             public List<LiveData> LiveData = new List<SensorController.LiveData>();
         }
 
+        public class Sensor
+        {
+            public string Mac;
+            public string CurrentLabel;
+            public string[] Labels;
+        }
+
         //mac address -> classifications
         static Dictionary<string, SensorInfo> sensorInfo = new Dictionary<string, SensorInfo>();
 
@@ -95,9 +102,18 @@ namespace DataHub.Controllers
 
         [HttpGet]
         [Route("api/sensor")]
-        public Response<List<string>> GetSensors()
+        public Response<List<Sensor>> GetSensors()
         {
-            return new Response<List<string>>() { Data = sensorInfo.Keys.ToList() };
+            List<Sensor> sensors = new List<Sensor>();
+            foreach (var item in sensorInfo)
+            {
+                Sensor sensor = new Sensor();
+                sensor.Mac = item.Key;
+                sensor.CurrentLabel = item.Value.Label;
+                sensor.Labels = item.Value.LiveData.Last().Classifications.Keys.ToArray();
+                sensors.Add(sensor);
+            }
+            return new Response<List<Sensor>>() { Data = sensors };
         }
 
         [HttpGet]
