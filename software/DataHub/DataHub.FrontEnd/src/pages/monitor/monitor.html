@@ -11,11 +11,16 @@
 		<div class="list">
 				<div class="box">
 					<div *ngFor="let sensor of sensors">
-						<input (keyup)="checkEnter($event, sensor)" placeholder="Change label ...">
-						<p>{{values}}</p>
-						<chart class="chart-half" [options]="dataChartOptions" (load)="saveInstance($event.context, sensor)"></chart>
+						<select [ngModel]="sensor.CurrentLabel" (ngModelChange)="labelChanged(sensor.Mac, $event)">
+							<option *ngFor="let label of sensor.Labels">{{label}}</option>
+						</select>
+						<chart class="chart-half" [options]="dataChartOptions" (load)="saveInstance($event.context, sensor.Mac)"></chart>
 					</div>
 				</div>
 		</div>
 	</div>
 </div>
+
+<!-- <select type="text" [ngModel]="model.TypeId" (ngModelChange)="typeChanged($event)" class="input-field" style="width: 30%;margin: 0px;">
+		<option *ngFor="let modelType of modelTypes" [value]="modelType.Id">{{modelType.Name}}</option>
+	</select> -->
