@@ -55,7 +55,7 @@ networkResult EvaluateNetwork(network* ann, group g) {
 
 network initiateRandomNetwork(char** labels, int n_labels) {
   const int n_layers = 3;
-  int layerSizes[n_layers] = {40, 30, 2};
+  int layerSizes[n_layers] = {40, 10, 2};
 
   network n;
 

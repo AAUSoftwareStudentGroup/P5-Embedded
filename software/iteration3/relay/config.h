@@ -19,6 +19,13 @@
 		#define SERIALPRINTSHOT
 	#endif
 
+  // Training configuration
+  #define MAX_EPOCHS 20
+  #define VALIDATION_ERROR_THRESHOLD 0.25
+  #define TRAIN_DATA_BUFFER_SIZE 10
+  #define VALIDATION_DATA_BUFFER_SIZE 10
+  #define MAX_DATA_BUFFER_SIZE 100
+  
 	// Encog parser configuration
 	#define ENCOG_LABEL_MAX_LENGTH 16 				// Size of buffer wherein ENCOG labels are read into
 	#define ENCOG_FORCE_OVERWRITE_MODEL true		// ReWrite the default model on boot
@@ -30,7 +37,7 @@
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "tired69tendency"
+	#define WIFI_PASS "lock46camera"
 //	#define WIFI_SSID "Tardis"
 //	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085

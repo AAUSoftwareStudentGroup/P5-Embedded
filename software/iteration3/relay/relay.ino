@@ -21,7 +21,16 @@ double networkExpectedResultForLabel[NUMBER_OF_LABELS][NUMBER_OF_LABELS] = {{1,0
 
 String outbuffer = String("");
 
+//Traning/validation buffers
+example buffers[NUMBER_OF_LABELS][MAX_DATA_BUFFER_SIZE]; // buffers are structured as: TRAIN_DATA_BUFFER_SIZE examples + VALIDATION_DATA_BUFFER_SIZE examples + additional new examples 
+example* nextBufferSlot[NUMBER_OF_LABELS];
+
 void setup() {
+  // setup next buffer slots
+  for(int i = 0; i < NUMBER_OF_LABELS; i++) {
+    nextBufferSlot[i] = buffers[i]; //point to first element in buffer for each label i.  
+  }
+  
   // setup serial for debugging
   Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);
@@ -106,7 +115,7 @@ group parseShot(char* buffer) {
 }
 
 // returns a boolean, indicating if there is a label for the given node id
-bool getLabelForNode(char* macCString, networkResult* result) {
+bool getLabelForNode(char* macCString, networkResult* result, int* labelIndex) {
   String mac = String(macCString);
   
   bool foundID = false;
@@ -120,7 +129,8 @@ bool getLabelForNode(char* macCString, networkResult* result) {
         if(nodeMapping[i].label == String(labels[j])) {
           foundLabel = true;
           result->results = networkExpectedResultForLabel[j];
-          result->length = 2;
+          result->length = NUMBER_OF_LABELS;
+          *labelIndex = j;
         }
       }
     }
@@ -142,6 +152,45 @@ bool thereIsNewNodeData() {
   return (UDP.parsePacket() > 0);
 }
 
+double calculateMSE(network *n) {
+  double error = 0;
+  int count = 0;
+  for(int i = 0; i < NUMBER_OF_LABELS; i++) {
+    for(int d = 0; d < VALIDATION_DATA_BUFFER_SIZE; d++) {
+      example e = buffers[i][d + TRAIN_DATA_BUFFER_SIZE];
+      networkResult actualOutput = EvaluateNetwork(n, e.input);
+      networkResult expectedOutput = e.output;
+      for(int r = 0; r < actualOutput.length; r++) {
+        error += (actualOutput.results[r] - expectedOutput.results[r]) * (actualOutput.results[r] - expectedOutput.results[r]); 
+        count++;
+      }
+    }
+  }
+  return error / count;
+}
+
+void train(network *n) {
+  for(int i = 0; i < MAX_EPOCHS; i++) {
+    double validationError = calculateMSE(n);
+    
+    Serial.println(String("Validation error: ") + validationError);
+
+    if(validationError < VALIDATION_ERROR_THRESHOLD) {
+      break;
+    }
+
+    example trainingData[TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS];
+
+    for(int d = 0; d < TRAIN_DATA_BUFFER_SIZE; d++) {
+      for(int i = 0; i < NUMBER_OF_LABELS; i++) {
+        trainingData[d * NUMBER_OF_LABELS + i] = buffers[i][d];    
+      }
+    }
+    
+    trainNetwork(n, trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
+  }
+}
+
 void onNewNodeData() {
   static char* udpInputBuffer = (char*)malloc(sizeof(char)*NODE_BUFFER_SIZE);
   char* macAddrStr;
@@ -157,25 +206,24 @@ void onNewNodeData() {
   parseMac(udpInputBuffer, &macAddrStr, &shotStr);
   shot = parseShot(shotStr);
 
-  // evaluate network and add to out buffer
-  annOut = EvaluateNetwork(&neuralNet, shot);
-  outbuffer += String(macAddrStr) + "#";
-  for(int i = 0; i < annOut.length; i++) {
-    outbuffer += String(neuralNet.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
-  }
-  outbuffer += String("\n");
-
-
-  // If node has been maped to a label
   example e;
   e.input = shot;
-  if(getLabelForNode(macAddrStr, &(e.output))) {
-    Serial.println(String(macAddrStr) + " training with data " + String(e.output.results[0])+","+String(e.output.results[1]));
-    trainNetwork(&neuralNet, &e, 1);
+  int labelIndex;
+  if(getLabelForNode(macAddrStr, &(e.output), &labelIndex)) {
+    if(nextBufferSlot[labelIndex] - buffers[labelIndex] < MAX_DATA_BUFFER_SIZE) { // If buffer for label is not full
+      *(nextBufferSlot[labelIndex]) = e; // Add example to buffer for label with index i;
+      nextBufferSlot[labelIndex] += 1; // Move next available slot
+    }
+  } else {
+    annOut = EvaluateNetwork(&neuralNet, shot);
+    outbuffer += String(macAddrStr) + "#";
+    for(int i = 0; i < annOut.length; i++) {
+      outbuffer += String(neuralNet.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
+    }
+    outbuffer += String("\n");
   }
 
-  // Free shot array
-  free(shot.datapoints);
+  
 }
 
 bool itsTimeToSendToServer() {
