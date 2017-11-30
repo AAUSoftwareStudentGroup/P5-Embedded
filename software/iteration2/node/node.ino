@@ -6,16 +6,21 @@
 #include "mpu.h"
 #include "ann.h"
 #include "wifi.h"
+#include "test.h"
 
 group networkFodder;
 bool networkFodderReady = false;
 
 void setup() {
+  #ifdef TEST
+    test();
+  #endif
+  
   setup_io();
   Serial.println();
   Serial.println("Initializing:");
   
-  Serial.println("- ANN");
+  Serial.println("-test ANN");
   setup_neuralNetwork();
 
   Serial.println("- MPU");

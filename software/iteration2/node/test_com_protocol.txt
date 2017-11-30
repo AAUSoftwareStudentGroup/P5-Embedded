@@ -1,0 +1,8 @@
+"<type>#<data>"
+
+device -> pc:
+	"command#send_data": Send next datapoint
+	"command#send_next_result": Send next result
+pc -> device: 
+	"datapoint#<datapointFromCSV>": Next datapoint
+	"result#<resultFromNetwork>": Next result from network
