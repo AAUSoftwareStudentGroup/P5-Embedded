@@ -17,7 +17,7 @@ typedef struct _idToLabel {
 
 idToLabel nodeMapping[MAX_NUMBER_OF_NODES];
 char* labels[NUMBER_OF_LABELS] = {"Anton", "Morten"};
-double networkExpectedResultForLabel[NUMBER_OF_LABELS][NUMBER_OF_LABELS] = {{1,0}, {0,1}};
+float networkExpectedResultForLabel[NUMBER_OF_LABELS][NUMBER_OF_LABELS] = {{1,0}, {0,1}};
 
 String outbuffer = String("");
 
@@ -90,7 +90,7 @@ group parseShot(char* buffer) {
   shot.length = 10;
   shot.datapoints = (datapoint*)malloc(sizeof(datapoint)*shot.length);;
 
-  double parsedDatapoints[40];
+  float parsedDatapoints[40];
   
   // For all datapoints
   for(int i = 0; i < 40; i++) {
@@ -152,8 +152,8 @@ bool thereIsNewNodeData() {
   return (UDP.parsePacket() > 0);
 }
 
-double calculateMSE(network *n) {
-  double error = 0;
+float calculateMSE(network *n) {
+  float error = 0;
   int count = 0;
   for(int i = 0; i < NUMBER_OF_LABELS; i++) {
     for(int d = 0; d < VALIDATION_DATA_BUFFER_SIZE; d++) {
@@ -171,7 +171,7 @@ double calculateMSE(network *n) {
 
 void train(network *n) {
   for(int i = 0; i < MAX_EPOCHS; i++) {
-    double validationError = calculateMSE(n);
+    float validationError = calculateMSE(n);
     
     Serial.println(String("Validation error: ") + validationError);
 
@@ -210,9 +210,12 @@ void onNewNodeData() {
   e.input = shot;
   int labelIndex;
   if(getLabelForNode(macAddrStr, &(e.output), &labelIndex)) {
+    Serial.println(nextBufferSlot[labelIndex] - buffers[labelIndex]);
     if(nextBufferSlot[labelIndex] - buffers[labelIndex] < MAX_DATA_BUFFER_SIZE) { // If buffer for label is not full
       *(nextBufferSlot[labelIndex]) = e; // Add example to buffer for label with index i;
       nextBufferSlot[labelIndex] += 1; // Move next available slot
+    } else {
+      free(shot.datapoints);
     }
   } else {
     annOut = EvaluateNetwork(&neuralNet, shot);
@@ -221,6 +224,7 @@ void onNewNodeData() {
       outbuffer += String(neuralNet.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
     }
     outbuffer += String("\n");
+    free(shot.datapoints);
   }
 
   
@@ -311,6 +315,7 @@ void sendDataToServer() {
         char* serverResopnse = (char*)malloc(sizeof(char)*line.length());
         strcpy(serverResopnse, line.c_str());
         parseServerResponse(serverResopnse);
+        free(serverResopnse);
       }
       if(line.length() < 2) {
         currentlyReadingHeader = false;
@@ -321,11 +326,25 @@ void sendDataToServer() {
   outbuffer = String("");
 }
 
+bool trainplz = true;
+
 void loop() {
   static int nConnectedNodes = 0;
 
   if(thereIsNewNodeData()) {
     onNewNodeData();
+  }
+  bool trainingAvailable = true;
+  for(int i = 0; i < NUMBER_OF_LABELS; i++) {
+    if(nextBufferSlot[i] - buffers[i] < TRAIN_DATA_BUFFER_SIZE + VALIDATION_DATA_BUFFER_SIZE) {
+      trainingAvailable = false;
+      break;
+    }
+  }
+  
+  if(trainingAvailable && trainplz) {
+    train(&neuralNet);
+    trainplz = false;
   }
   if(itsTimeToSendToServer()) {
     if(WiFi.softAPgetStationNum() != nConnectedNodes) {

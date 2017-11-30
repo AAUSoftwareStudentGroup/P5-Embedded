@@ -152,8 +152,6 @@ bool _calculateOutputError(network* n, networkResult expectedOutput) {
     outputLayer->nodes[i].error = error;
   }
 
-  Serial.print("error^2 = ");
-  Serial.println(sumSquaredError);
   return true; 
 }
 
