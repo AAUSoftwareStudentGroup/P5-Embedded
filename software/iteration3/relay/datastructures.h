@@ -3,13 +3,13 @@
 
 typedef struct _datapoint
 {
-  double T;
-  double X;
-  double Y;
-  double Z;
-  double RX;
-  double RY;
-  double RZ;
+  float T;
+  float X;
+  float Y;
+  float Z;
+  float RX;
+  float RY;
+  float RZ;
 } datapoint;
 
 typedef struct _group
@@ -20,10 +20,10 @@ typedef struct _group
 
 typedef struct _node {
   // there are as many weights as there are nodes in the next layer
-  double* weights;
-  double val; // sum of weighted inputs
-  double out; // after activation function
-  double error; // error value of a node (used during training)
+  float* weights;
+  float val; // sum of weighted inputs
+  float out; // after activation function
+  float error; // error value of a node (used during training)
   // int n_weights; 
 } node;
 
@@ -36,7 +36,7 @@ typedef struct _layer {
 } layer;
 
 typedef struct _networkResult {
-  double* results;
+  float* results;
   int length;
 } networkResult;
 

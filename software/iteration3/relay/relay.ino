@@ -90,7 +90,7 @@ group parseShot(char* buffer) {
   shot.length = 10;
   shot.datapoints = (datapoint*)malloc(sizeof(datapoint)*shot.length);;
 
-  float parsedDatapoints[40];
+  double parsedDatapoints[40];
   
   // For all datapoints
   for(int i = 0; i < 40; i++) {
@@ -152,8 +152,8 @@ bool thereIsNewNodeData() {
   return (UDP.parsePacket() > 0);
 }
 
-float calculateMSE(network *n) {
-  float error = 0;
+double calculateMSE(network *n) {
+  double error = 0;
   int count = 0;
   for(int i = 0; i < NUMBER_OF_LABELS; i++) {
     for(int d = 0; d < VALIDATION_DATA_BUFFER_SIZE; d++) {
@@ -171,7 +171,7 @@ float calculateMSE(network *n) {
 
 void train(network *n) {
   for(int i = 0; i < MAX_EPOCHS; i++) {
-    float validationError = calculateMSE(n);
+    double validationError = calculateMSE(n);
     
     Serial.println(String("Validation error: ") + validationError);
 

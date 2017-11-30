@@ -1,11 +1,11 @@
 #include "ann.h"
 
-inline double sigmoid(double x) {
-  return 1.0l / (1.0l + exp((double) -x) );
+inline float sigmoid(float x) {
+  return 1.0l / (1.0l + exp((float) -x) );
 }
 
-inline double derivedSigmoid(double x) {
-  double a = sigmoid(x);
+inline float derivedSigmoid(float x) {
+  float a = sigmoid(x);
   return a*(1-a);
 }
 
@@ -65,7 +65,7 @@ network initiateRandomNetwork(char** labels, int n_labels) {
 
   int n_outputNodes = layerSizes[n_layers - 1];
   n.lastResult.length = n_outputNodes;
-  n.lastResult.results = (double*)malloc(sizeof(double)*n_outputNodes);
+  n.lastResult.results = (float*)malloc(sizeof(float)*n_outputNodes);
 
   n.labels = (char**)malloc(sizeof(char*)*n_outputNodes);
   for(int i = 0; i < n_outputNodes; i++) {
@@ -87,22 +87,22 @@ network initiateRandomNetwork(char** labels, int n_labels) {
       // for each node in layer
       for(int j = 0; j < layerSizes[i]; j++) {
         // Allocate space for weights
-        n.layers[i].nodes[j].weights = (double*)malloc(sizeof(double)*layerSizes[i+1]);
+        n.layers[i].nodes[j].weights = (float*)malloc(sizeof(float)*layerSizes[i+1]);
 
         // for each of those weights
         for(int k = 0; k < layerSizes[i+1]; k++) {
           // allocate a random value
-          double r = ((double) random(1000)/1000.0l) - 0.5l;
+          float r = ((float) random(1000)/1000.0l) - 0.5l;
           n.layers[i].nodes[j].weights[k] = r;
         }
       }
       // Allocate space for weights on bias node
-      n.layers[i].bias.weights = (double*)malloc(sizeof(double)*layerSizes[i+1]);
+      n.layers[i].bias.weights = (float*)malloc(sizeof(float)*layerSizes[i+1]);
       n.layers[i].bias.out = 1;
       // for each of those weights
       for(int k = 0; k < layerSizes[i+1]; k++) {
         // allocate a random value
-        double r = ((double) random(1000)/1000.0l) - 0.5l;
+        float r = ((float) random(1000)/1000.0l) - 0.5l;
         n.layers[i].bias.weights[k] = r;
       }
     }
@@ -136,9 +136,9 @@ void deallocateNetwork(network* n) {
 
 
 bool _calculateOutputError(network* n, networkResult expectedOutput) {
-  double error; // error of a single output node
+  float error; // error of a single output node
   layer* outputLayer = n->layers+(n->n_layers-1);
-  double sumSquaredError = 0;
+  float sumSquaredError = 0;
   
   // if length of expected and actual output does not match
   if(outputLayer->n_nodes != expectedOutput.length) {
@@ -164,7 +164,7 @@ void _backpropogateErrorValues(network* n){
     for(int j = 0; j < n->layers[i].n_nodes; j++){
 
       // calculate error term for the node
-      double errorSum = 0; // sum of (errors times weights)
+      float errorSum = 0; // sum of (errors times weights)
       for(int k = 0; k < n->layers[i + 1].n_nodes; k++){
         errorSum += n->layers[i + 1].nodes[k].error * n->layers[i].nodes[j].weights[k];
       }
@@ -173,7 +173,7 @@ void _backpropogateErrorValues(network* n){
   }
 }
 
-void _updateWeights(network* n, double learningRate) {
+void _updateWeights(network* n, float learningRate) {
   // for all layers except last
   for(int i = 0; i < n->n_layers-1; i++) {
     // for each node in that layer
@@ -181,10 +181,10 @@ void _updateWeights(network* n, double learningRate) {
       // for each outgoing weight 
       // (number of outgoing weights is the same as the number of nodes in the next layer)
       for(int k = 0; k < n->layers[i+1].n_nodes; k++) {
-        double newWeight;
-        double oldWeight          = n->layers[i].nodes[j].weights[k];
-        double weightTargetError  = n->layers[i+1].nodes[k].error;
-        double weightOriginOutput = n->layers[i].nodes[j].out;
+        float newWeight;
+        float oldWeight          = n->layers[i].nodes[j].weights[k];
+        float weightTargetError  = n->layers[i+1].nodes[k].error;
+        float weightOriginOutput = n->layers[i].nodes[j].out;
         
         newWeight = oldWeight + (learningRate*weightTargetError*weightOriginOutput);
         n->layers[i].nodes[j].weights[k] = newWeight;
@@ -195,10 +195,10 @@ void _updateWeights(network* n, double learningRate) {
       // for each outgoing weight
       // (number of outgoing weights is the same as the number of nodes in the next layer)
       for(int k = 0; k < n->layers[i+1].n_nodes; k++) {
-        double newWeight;
-        double oldWeight          = n->layers[i].bias.weights[k];
-        double weightTargetError  = n->layers[i+1].nodes[k].error;
-        double weightOriginOutput = n->layers[i].bias.out;
+        float newWeight;
+        float oldWeight          = n->layers[i].bias.weights[k];
+        float weightTargetError  = n->layers[i+1].nodes[k].error;
+        float weightOriginOutput = n->layers[i].bias.out;
         
         newWeight = oldWeight + (learningRate*weightTargetError*weightOriginOutput);
         n->layers[i].bias.weights[k] = newWeight;

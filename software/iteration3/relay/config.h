@@ -20,11 +20,11 @@
 	#endif
 
   // Training configuration
-  #define MAX_EPOCHS 20
-  #define VALIDATION_ERROR_THRESHOLD 0.25
-  #define TRAIN_DATA_BUFFER_SIZE 25
-  #define VALIDATION_DATA_BUFFER_SIZE 25
-  #define MAX_DATA_BUFFER_SIZE 50
+  #define MAX_EPOCHS 100
+  #define VALIDATION_ERROR_THRESHOLD 0.05
+  #define TRAIN_DATA_BUFFER_SIZE 20
+  #define VALIDATION_DATA_BUFFER_SIZE 10
+  #define MAX_DATA_BUFFER_SIZE 30
   
 	// Encog parser configuration
 	#define ENCOG_LABEL_MAX_LENGTH 16 				// Size of buffer wherein ENCOG labels are read into
@@ -49,6 +49,6 @@
 	#define NODE_BUFFER_SIZE 3000
 	#define NODE_BUFFER_LENGTH 3000
 
-	#define LEARNING_RATE 0.005
+	#define LEARNING_RATE 0.01
 
 #endif
