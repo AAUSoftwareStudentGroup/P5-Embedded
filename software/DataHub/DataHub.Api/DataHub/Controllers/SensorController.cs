@@ -25,6 +25,13 @@ namespace DataHub.Controllers
             public List<LiveData> LiveData = new List<SensorController.LiveData>();
         }
 
+        public class Sensor
+        {
+            public string Mac;
+            public string CurrentLabel;
+            public string[] Labels;
+        }
+
         //mac address -> classifications
         static Dictionary<string, SensorInfo> sensorInfo = new Dictionary<string, SensorInfo>();
 
@@ -49,7 +56,7 @@ namespace DataHub.Controllers
             string labelString = "";
             foreach (var item in sensorInfo)
             {
-                labelString += $"{item.Key}#{item.Value.Label}\r\n";
+                labelString += $"{item.Key}#{item.Value.Label};";
             }
 
             return labelString;
@@ -82,21 +89,37 @@ namespace DataHub.Controllers
                     live.Classifications.Add(name, confidence);
                 }
                 if (sensorInfo.ContainsKey(live.Mac))
+                {
                     sensorInfo[live.Mac].LiveData.Add(live);
+                    if(!live.Classifications.ContainsKey(sensorInfo[live.Mac].Label))
+                    {
+                        sensorInfo[live.Mac].Label = "none";
+                    }
+                }
                 else
                 {
-                    sensorInfo.Add(live.Mac, new SensorInfo() { LiveData = new List<LiveData> { live }, Label = ""});
+                    sensorInfo.Add(live.Mac, new SensorInfo() { LiveData = new List<LiveData> { live }, Label = "none"});
                 }
 
             }
+            this.Request.Content = new StringContent(GetLabels());
             return GetLabels();
         }
 
         [HttpGet]
         [Route("api/sensor")]
-        public Response<List<string>> GetSensors()
+        public Response<List<Sensor>> GetSensors()
         {
-            return new Response<List<string>>() { Data = sensorInfo.Keys.ToList() };
+            List<Sensor> sensors = new List<Sensor>();
+            foreach (var item in sensorInfo)
+            {
+                Sensor sensor = new Sensor();
+                sensor.Mac = item.Key;
+                sensor.CurrentLabel = item.Value.Label;
+                sensor.Labels = item.Value.LiveData.Last().Classifications.Keys.ToArray();
+                sensors.Add(sensor);
+            }
+            return new Response<List<Sensor>>() { Data = sensors };
         }
 
         [HttpGet]
@@ -130,14 +153,15 @@ namespace DataHub.Controllers
         [Route("api/sensor/{sensorId}/data/{windowSize}")]
         public Response<Dictionary<string, double>> GetAccumulatedLiveData(string sensorId, int? windowSize)
         {
-            windowSize = Math.Max(1, windowSize ?? 50);
+            windowSize = Math.Max(1, windowSize ?? 10);
             Dictionary<string, List<double>> grouped = new Dictionary<string, List<double>>();
 
             var ordered = GetLiveData(sensorId).Data;
+            var sensors = GetSensors().Data;
 
             foreach (var data in ordered.Reverse().Take(windowSize.Value).Reverse()) //Last 20 classifications
             {
-                foreach (var classification in data.Classifications)
+                foreach (var classification in data.Classifications.Where(c => sensors.FirstOrDefault(s => s.Mac == data.Mac).Labels.Contains(c.Key)))
                 {
                     if (grouped.ContainsKey(classification.Key))
                         grouped[classification.Key].Add(classification.Value);
