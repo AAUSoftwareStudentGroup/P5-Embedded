@@ -9,7 +9,7 @@
 inline double sigmoid(double x);
 inline double derivedSigmoid(double x);
 networkResult EvaluateNetwork(network* ann, group g);
-network initiateRandomNetwork();
+network initiateRandomNetwork(char** labels, int n_labels);
 void deallocateNetwork(network* n);
 bool _calculateOutputError(network* n, networkResult expectedOutput);
 void _backpropogateErrorValues(network* n);

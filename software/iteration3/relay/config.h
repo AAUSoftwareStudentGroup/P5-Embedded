@@ -24,10 +24,13 @@
 	#define ENCOG_FORCE_OVERWRITE_MODEL true		// ReWrite the default model on boot
 	#define ENCOG_MODEL_FILE_PATH "/model"			// File path of encog model
 
+	#define MAX_NUMBER_OF_NODES 4
+	#define NUMBER_OF_LABELS 2
+
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "nut27bulb"
+	#define WIFI_PASS "tired69tendency"
 //	#define WIFI_SSID "Tardis"
 //	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085
@@ -39,6 +42,6 @@
 	#define NODE_BUFFER_SIZE 3000
 	#define NODE_BUFFER_LENGTH 3000
 
-	#define LEARNING_RATE 0.5
+	#define LEARNING_RATE 0.05
 
 #endif

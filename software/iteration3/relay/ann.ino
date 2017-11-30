@@ -53,9 +53,9 @@ networkResult EvaluateNetwork(network* ann, group g) {
   return ann->lastResult;
 }
 
-network initiateRandomNetwork() {
+network initiateRandomNetwork(char** labels, int n_labels) {
   const int n_layers = 3;
-  int layerSizes[n_layers] = {40, 40, 2};
+  int layerSizes[n_layers] = {40, 30, 2};
 
   network n;
 
@@ -70,7 +70,10 @@ network initiateRandomNetwork() {
   n.labels = (char**)malloc(sizeof(char*)*n_outputNodes);
   for(int i = 0; i < n_outputNodes; i++) {
     n.labels[i] = (char*)malloc(sizeof(char)*8);
-    strcpy(n.labels[i], ("Label" + String(i)).c_str());
+    if(i < n_labels)
+      strcpy(n.labels[i], labels[i]);
+    else
+      strcpy(n.labels[i], ("Label" + String(i)).c_str());
   }
 
   // for each layer
@@ -135,18 +138,22 @@ void deallocateNetwork(network* n) {
 bool _calculateOutputError(network* n, networkResult expectedOutput) {
   double error; // error of a single output node
   layer* outputLayer = n->layers+(n->n_layers-1);
+  double sumSquaredError = 0;
   
   // if length of expected and actual output does not match
   if(outputLayer->n_nodes != expectedOutput.length) {
     return false;
   }
-
   for(int i = 0; i < outputLayer->n_nodes; i++) {
     // error = (expected-result)*derivedSigmoid(val)
     error = (expectedOutput.results[i] - outputLayer->nodes[i].out);
+    sumSquaredError += error*error;
     error *= derivedSigmoid(outputLayer->nodes[i].val);
     outputLayer->nodes[i].error = error;
   }
+
+  Serial.print("error^2 = ");
+  Serial.println(sumSquaredError);
   return true; 
 }
 
