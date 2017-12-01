@@ -11,8 +11,8 @@ WiFiUDP UDP;
 network neuralNet;
 
 typedef struct _idToLabel {
-  String nodeId;
-  String label;
+  char nodeId[MAC_SIZE];
+  char* label;
 } idToLabel;
 
 idToLabel nodeMapping[MAX_NUMBER_OF_NODES];
@@ -31,6 +31,11 @@ void setup() {
     nextBufferSlot[i] = buffers[i]; //point to first element in buffer for each label i.  
   }
   
+  for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
+    nodeMapping[i].nodeId[0] = '\0';
+    nodeMapping[i].label = NONE_STR;
+  }
+
   // setup serial for debugging
   Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);
@@ -44,13 +49,7 @@ void setup() {
   Serial.println("- UDP socket");
   while(UDP.begin(UDP_PORT) == 0);
 
-  for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-    nodeMapping[i].nodeId = String("");
-    nodeMapping[i].label = String("");
-  }
-
   randomSeed(micros());
-  Serial.println("SETUP: DONE!");
 }
 
 void setupWifi() {
@@ -116,17 +115,15 @@ group parseShot(char* buffer) {
 
 // returns a boolean, indicating if there is a label for the given node id
 bool getLabelForNode(char* macCString, networkResult* result, int* labelIndex) {
-  String mac = String(macCString);
-  
   bool foundID = false;
   bool foundLabel = false;
   // find the mac in the mapping array
   for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-    if(nodeMapping[i].nodeId == mac) {
+    if(strcmp(nodeMapping[i].nodeId, macCString) == 0) {
       foundID = true;
       // find the appropriate label
       for(int j = 0; j < NUMBER_OF_LABELS; j++) {
-        if(nodeMapping[i].label == String(labels[j])) {
+        if(strcmp(nodeMapping[i].label, labels[j]) == 0) {
           foundLabel = true;
           result->results = networkExpectedResultForLabel[j];
           result->length = NUMBER_OF_LABELS;
@@ -138,9 +135,9 @@ bool getLabelForNode(char* macCString, networkResult* result, int* labelIndex) {
   if(!foundID) {
     // add id to mapping array
     for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-      if(nodeMapping[i].nodeId == "") {
-        nodeMapping[i].nodeId = mac;
-        nodeMapping[i].label = "";
+      if(nodeMapping[i].nodeId[0] == '\0') {
+        strcpy(nodeMapping[i].nodeId, macCString);
+        nodeMapping[i].label = NONE_STR;
         break;
       }
     }
@@ -170,34 +167,31 @@ double calculateMSE(network *n) {
 }
 
 void train(network *n) {
+  example trainingData[TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS];
+
+  for(int d = 0; d < TRAIN_DATA_BUFFER_SIZE; d++) {
+    for(int i = 0; i < NUMBER_OF_LABELS; i++) {
+      trainingData[d * NUMBER_OF_LABELS + i] = buffers[i][d];    
+    }
+  }
+
   for(int e = 0; e < MAX_EPOCHS; e++) {
     double validationError = calculateMSE(n);
-    
-    Serial.println(String("Validation error: ") + validationError);
-
+    Serial.println(e + String(": Validation error: ") + validationError);
     if(validationError < VALIDATION_ERROR_THRESHOLD) {
       break;
     }
-
-    example trainingData[TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS];
-
-    for(int d = 0; d < TRAIN_DATA_BUFFER_SIZE; d++) {
-      for(int i = 0; i < NUMBER_OF_LABELS; i++) {
-        trainingData[d * NUMBER_OF_LABELS + i] = buffers[i][d];    
-      }
-    }
-    
     trainNetwork(n, trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
+    yield();
   }
 }
 
 void onNewNodeData() {
-  static char* udpInputBuffer = (char*)malloc(sizeof(char)*NODE_BUFFER_SIZE);
+  static char udpInputBuffer[NODE_BUFFER_SIZE];
   char* macAddrStr;
   char* shotStr;
   group shot;
   networkResult annOut;
-  
   // read data
   int len = UDP.read(udpInputBuffer, NODE_BUFFER_SIZE-1);
   udpInputBuffer[len] = '\0'; 
@@ -205,7 +199,7 @@ void onNewNodeData() {
   // read macaddress and shot data
   parseMac(udpInputBuffer, &macAddrStr, &shotStr);
   shot = parseShot(shotStr);
-
+  
   example e;
   e.input = shot;
   int labelIndex;
@@ -226,8 +220,6 @@ void onNewNodeData() {
     outbuffer += String("\n");
     free(shot.datapoints);
   }
-
-  
 }
 
 bool itsTimeToSendToServer() {
@@ -242,8 +234,14 @@ bool itsTimeToSendToServer() {
 
 void setMapping(char* id, char* label) {
   for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-    if(nodeMapping[i].nodeId == id) {
-      nodeMapping[i].label = label;
+    if(strcmp(nodeMapping[i].nodeId, id) == 0) {
+      nodeMapping[i].label = NONE_STR;
+      for(int j = 0; j < NUMBER_OF_LABELS; j++) {
+        if(strcmp(labels[j], label) == 0) {
+          nodeMapping[i].label = labels[j];
+        }
+      }
+      return;
     }
   }
 }
@@ -271,6 +269,8 @@ void parseServerResponse(char* serverResopnse) {
       *serverResopnse = '\0';
 
       // update mapping array
+      Serial.println(id);
+      Serial.println(label);
       setMapping(id, label);
 
       // begin reading label
@@ -287,7 +287,6 @@ void sendDataToServer() {
     Serial.println("Connection failed");
     return;
   }
- 
   Serial.println(outbuffer);
   // Send buffer to server
   client.print(String("POST") + " /api/sensor/data HTTP/1.1\r\n" \
@@ -295,6 +294,7 @@ void sendDataToServer() {
                "Content-Type: application/json\r\n" \
                "Content-Length: "+ (outbuffer.length()+2) +"\r\n" \
                "Connection: close\r\n\r\n"+"\"" + outbuffer + "\"");
+               
   
   // Wait till done 
   int timeout = millis()+RELAY_HTTP_REQUEST_TIMEOUT_MS;
@@ -308,33 +308,43 @@ void sendDataToServer() {
     if(client.available()){
       // read result and update node-label mapping
       String line = client.readStringUntil('\n');
+      
       if(currentlyReadingHeader == false) {
+      
         Serial.print("[DATAHUB] ");
         Serial.print(line);
         Serial.println(" [/DATAHUB]");
         char* serverResopnse = (char*)malloc(sizeof(char)*line.length());
+        
         strcpy(serverResopnse, line.c_str());
+        
         parseServerResponse(serverResopnse);
+        
         free(serverResopnse);
       }
       if(line.length() < 2) {
         currentlyReadingHeader = false;
       }
+      
     }
   }
+  
   client.stop();
   outbuffer = String("");
 }
 
-bool trainplz = true;
+bool doTrain = true;
 
 void loop() {
+
   static int nConnectedNodes = 0;
 
   if(thereIsNewNodeData()) {
     onNewNodeData();
   }
+  
   bool trainingAvailable = true;
+
   for(int i = 0; i < NUMBER_OF_LABELS; i++) {
     if(nextBufferSlot[i] - buffers[i] < TRAIN_DATA_BUFFER_SIZE + VALIDATION_DATA_BUFFER_SIZE) {
       trainingAvailable = false;
@@ -342,23 +352,25 @@ void loop() {
     }
   }
   
-  if(trainingAvailable && trainplz) {
+  if(trainingAvailable && doTrain){
+    doTrain = false;
     train(&neuralNet);
-    trainplz = false;
   }
+
   if(itsTimeToSendToServer()) {
+  
     if(WiFi.softAPgetStationNum() != nConnectedNodes) {
       nConnectedNodes = WiFi.softAPgetStationNum();
       Serial.println(String("Connected devices: " + String(nConnectedNodes)));
     }
-
-    Serial.println("-MAPPING-");
-    for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-      Serial.print(nodeMapping[i].nodeId);
-      Serial.print(" - ");
-      Serial.println(nodeMapping[i].label);
-    }
-
+    
+    // Serial.println("-MAPPING-");
+    // for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
+    //   Serial.print(nodeMapping[i].nodeId);
+    //   Serial.print(" - ");
+    //   Serial.println(nodeMapping[i].label);
+    // }
+    
     sendDataToServer();
   }
 }
