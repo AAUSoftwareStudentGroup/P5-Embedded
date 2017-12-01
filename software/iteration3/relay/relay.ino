@@ -170,7 +170,7 @@ double calculateMSE(network *n) {
 }
 
 void train(network *n) {
-  for(int i = 0; i < MAX_EPOCHS; i++) {
+  for(int e = 0; e < MAX_EPOCHS; e++) {
     double validationError = calculateMSE(n);
     
     Serial.println(String("Validation error: ") + validationError);
