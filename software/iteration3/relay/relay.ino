@@ -1,9 +1,12 @@
 #include <WiFiUdp.h>
+// #include <WiFi.h>
 #include <ESP8266WiFi.h>
 #include <stdlib.h>
 #include "datastructures.h"
 #include "config.h"
 #include "ann.h"
+
+
 
 static int LED_state = 0;
 WiFiClient client;
@@ -53,6 +56,7 @@ void setup() {
 }
 
 void setupWifi() {
+
   // Create access point
   Serial.println(String("Creating access point \"")+ WIFI_AP_SSID + "\" without password");
   WiFi.mode(WIFI_AP_STA);
@@ -74,7 +78,7 @@ void setupWifi() {
 void parseMac(char* buffer, char** mac, char** endOfMac) {
   *mac = buffer;
   
-  while(buffer[0] != '#') 
+  while(buffer[0] != '#' && buffer-(*mac) <= MAC_SIZE)
     buffer++;
   buffer[0] = '\0';
 
@@ -89,13 +93,13 @@ group parseShot(char* buffer) {
   shot.length = 10;
   shot.datapoints = (datapoint*)malloc(sizeof(datapoint)*shot.length);;
 
-  double parsedDatapoints[40];
+  float parsedDatapoints[40];
   
   // For all datapoints
   for(int i = 0; i < 40; i++) {
     char* endOfNumber = buffer;
     // Find end of number
-    while(*endOfNumber != ':') endOfNumber++;
+    while(*endOfNumber != ':' && *endOfNumber != '\0' && endOfNumber-buffer < 20) endOfNumber++;
     *endOfNumber = '\0';
 
     // Parse number
@@ -149,8 +153,9 @@ bool thereIsNewNodeData() {
   return (UDP.parsePacket() > 0);
 }
 
-double calculateMSE(network *n) {
-  double error = 0;
+float calculateMSE(network *n) {
+  float errorSum = 0;
+  float error;
   int count = 0;
   for(int i = 0; i < NUMBER_OF_LABELS; i++) {
     for(int d = 0; d < VALIDATION_DATA_BUFFER_SIZE; d++) {
@@ -158,15 +163,18 @@ double calculateMSE(network *n) {
       networkResult actualOutput = EvaluateNetwork(n, e.input);
       networkResult expectedOutput = e.output;
       for(int r = 0; r < actualOutput.length; r++) {
-        error += (actualOutput.results[r] - expectedOutput.results[r]) * (actualOutput.results[r] - expectedOutput.results[r]); 
+        error = (actualOutput.results[r] - expectedOutput.results[r]);
+        errorSum += error*error; 
         count++;
       }
     }
   }
-  return error / count;
+  return errorSum / count;
 }
 
 void train(network *n) {
+  static float lowerstValidationError = 100000000;
+  static int numberOfDidNotImproveTrainings = 0;
   example trainingData[TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS];
 
   for(int d = 0; d < TRAIN_DATA_BUFFER_SIZE; d++) {
@@ -175,15 +183,28 @@ void train(network *n) {
     }
   }
 
-  for(int e = 0; e < MAX_EPOCHS; e++) {
-    double validationError = calculateMSE(n);
-    Serial.println(e + String(": Validation error: ") + validationError);
-    if(validationError < VALIDATION_ERROR_THRESHOLD) {
-      break;
+  // for(int e = 0; e < MAX_EPOCHS; e++) {
+    float validationError = calculateMSE(n);
+    Serial.println(/*String(e) + */String(": Validation error: ") + String(validationError,4));
+
+    if(validationError < lowerstValidationError-REQUIRED_IMPROVEMENT) {
+      lowerstValidationError = validationError;
+      numberOfDidNotImproveTrainings = 0;
+    }
+    else if(numberOfDidNotImproveTrainings++ > ALLOWED_ITERATIONS_WHERE_TRAINING_DOES_NOT_IMPROVE) {
+      lowerstValidationError = 100000000;
+      numberOfDidNotImproveTrainings = 0;
+      // empty the buffer
+      for(int l = 0; l < NUMBER_OF_LABELS; l++) {
+        for(int d = 0; d < MAX_DATA_BUFFER_SIZE; d++) {
+          free(buffers[l][d].input.datapoints);
+        }
+        nextBufferSlot[l] = buffers[l];
+      }
     }
     trainNetwork(n, trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
     yield();
-  }
+  // }
 }
 
 void onNewNodeData() {
@@ -195,6 +216,8 @@ void onNewNodeData() {
   // read data
   int len = UDP.read(udpInputBuffer, NODE_BUFFER_SIZE-1);
   udpInputBuffer[len] = '\0'; 
+  Serial.print("[NODE] ");
+  Serial.println(udpInputBuffer);
   
   // read macaddress and shot data
   parseMac(udpInputBuffer, &macAddrStr, &shotStr);
@@ -212,12 +235,14 @@ void onNewNodeData() {
       free(shot.datapoints);
     }
   } else {
-    annOut = EvaluateNetwork(&neuralNet, shot);
-    outbuffer += String(macAddrStr) + "#";
-    for(int i = 0; i < annOut.length; i++) {
-      outbuffer += String(neuralNet.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
+    if(outbuffer.length() < 1024) {
+      annOut = EvaluateNetwork(&neuralNet, shot);
+      outbuffer += String(macAddrStr) + "#";
+      for(int i = 0; i < annOut.length; i++) {
+        outbuffer += String(neuralNet.labels[i]) + ":" + String(annOut.results[i], 8) + ";";
+      }
+      outbuffer += String("\n");
     }
-    outbuffer += String("\n");
     free(shot.datapoints);
   }
 }
@@ -269,8 +294,8 @@ void parseServerResponse(char* serverResopnse) {
       *serverResopnse = '\0';
 
       // update mapping array
-      Serial.println(id);
-      Serial.println(label);
+      // Serial.println(id);
+      // Serial.println(label);
       setMapping(id, label);
 
       // begin reading label
@@ -282,28 +307,15 @@ void parseServerResponse(char* serverResopnse) {
 }
 
 void sendDataToServer() {
-  // Connect to server
-  if (!client.connect(HTTP_HOST, HTTP_PORT)) {
-    Serial.println("Connection failed");
-    return;
-  }
-  Serial.println(outbuffer);
-  // Send buffer to server
-  client.print(String("POST") + " /api/sensor/data HTTP/1.1\r\n" \
-               "Host: " + HTTP_HOST + "\r\n" \
-               "Content-Type: application/json\r\n" \
-               "Content-Length: "+ (outbuffer.length()+2) +"\r\n" \
-               "Connection: close\r\n\r\n"+"\"" + outbuffer + "\"");
-               
-  
-  // Wait till done 
-  int timeout = millis()+RELAY_HTTP_REQUEST_TIMEOUT_MS;
-  bool currentlyReadingHeader = true;
-  while(client.connected()) {
+  static int timeout;
+  static bool currentlyReadingHeader;
+
+  if(client.connected()) {
     // If the request takes too long
     if (timeout-(int)millis() < 0) {
       Serial.println("Client Timeout !");
-      break;
+      client.stop();
+      return;
     }
     if(client.available()){
       // read result and update node-label mapping
@@ -317,8 +329,9 @@ void sendDataToServer() {
         char* serverResopnse = (char*)malloc(sizeof(char)*line.length());
         
         strcpy(serverResopnse, line.c_str());
-        
+        Serial.println((int)serverResopnse);
         parseServerResponse(serverResopnse);
+        Serial.println((int)serverResopnse);
         
         free(serverResopnse);
       }
@@ -328,17 +341,33 @@ void sendDataToServer() {
       
     }
   }
-  
-  client.stop();
-  outbuffer = String("");
+  else {
+    client.stop();
+    // Connect to server
+    if (!client.connect(HTTP_HOST, HTTP_PORT)) {
+      Serial.println("Connection failed");
+      return;
+    }
+    Serial.println(outbuffer);
+    // Send buffer to server
+    client.print(String("POST") + " /api/sensor/data HTTP/1.1\r\n" \
+                 "Host: " + HTTP_HOST + "\r\n" \
+                 "Content-Type: application/json\r\n" \
+                 "Content-Length: "+ (outbuffer.length()+2) +"\r\n" \
+                 "Connection: close\r\n\r\n"+"\"" + outbuffer + "\"");
+    
+    outbuffer = String("");
+
+    // Wait till done 
+    timeout = millis()+RELAY_HTTP_REQUEST_TIMEOUT_MS;
+    currentlyReadingHeader = true;
+  }
 }
 
-bool doTrain = true;
 
 void loop() {
 
   static int nConnectedNodes = 0;
-
   if(thereIsNewNodeData()) {
     onNewNodeData();
   }
@@ -352,12 +381,15 @@ void loop() {
     }
   }
   
-  if(trainingAvailable && doTrain){
-    doTrain = false;
+  if(trainingAvailable){
     train(&neuralNet);
   }
 
-  if(itsTimeToSendToServer()) {
+  if(itsTimeToSendToServer() && !client.connected()) {
+    Serial.print("HEAP: ");
+    Serial.println(ESP.getFreeHeap());
+    // Serial.print("Free heap: ");
+    // Serial.println(ESP.getFreeHeap());
   
     if(WiFi.softAPgetStationNum() != nConnectedNodes) {
       nConnectedNodes = WiFi.softAPgetStationNum();
@@ -371,6 +403,9 @@ void loop() {
     //   Serial.println(nodeMapping[i].label);
     // }
     
+    sendDataToServer();
+  }
+  if(client.connected()) {
     sendDataToServer();
   }
 }

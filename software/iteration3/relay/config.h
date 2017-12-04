@@ -24,7 +24,8 @@
 
 	// Training configuration
 	#define MAX_EPOCHS 100
-	#define VALIDATION_ERROR_THRESHOLD 0.05
+	#define REQUIRED_IMPROVEMENT 0.01
+	#define ALLOWED_ITERATIONS_WHERE_TRAINING_DOES_NOT_IMPROVE 5 
 	#define TRAIN_DATA_BUFFER_SIZE 10
 	#define VALIDATION_DATA_BUFFER_SIZE 10
 	#define MAX_DATA_BUFFER_SIZE 20
@@ -40,7 +41,7 @@
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "guide69verse"
+	#define WIFI_PASS "insurance76middle"
 //	#define WIFI_SSID "Tardis"
 //	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085
