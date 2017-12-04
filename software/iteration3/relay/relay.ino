@@ -183,28 +183,26 @@ void train(network *n) {
     }
   }
 
-  // for(int e = 0; e < MAX_EPOCHS; e++) {
-    float validationError = calculateMSE(n);
-    Serial.println(/*String(e) + */String(": Validation error: ") + String(validationError,4));
+  float validationError = calculateMSE(n);
+  Serial.println(/*String(e) + */String(": Validation error: ") + String(validationError,4));
 
-    if(validationError < lowerstValidationError-REQUIRED_IMPROVEMENT) {
-      lowerstValidationError = validationError;
-      numberOfDidNotImproveTrainings = 0;
-    }
-    else if(numberOfDidNotImproveTrainings++ > ALLOWED_ITERATIONS_WHERE_TRAINING_DOES_NOT_IMPROVE) {
-      lowerstValidationError = 100000000;
-      numberOfDidNotImproveTrainings = 0;
-      // empty the buffer
-      for(int l = 0; l < NUMBER_OF_LABELS; l++) {
-        for(int d = 0; d < MAX_DATA_BUFFER_SIZE; d++) {
-          free(buffers[l][d].input.datapoints);
-        }
-        nextBufferSlot[l] = buffers[l];
+  if(validationError < lowerstValidationError-REQUIRED_IMPROVEMENT) {
+    lowerstValidationError = validationError;
+    numberOfDidNotImproveTrainings = 0;
+  }
+  else if(numberOfDidNotImproveTrainings++ > ALLOWED_ITERATIONS_WHERE_TRAINING_DOES_NOT_IMPROVE) {
+    lowerstValidationError = 100000000;
+    numberOfDidNotImproveTrainings = 0;
+    // empty the buffer
+    for(int l = 0; l < NUMBER_OF_LABELS; l++) {
+      for(int d = 0; d < MAX_DATA_BUFFER_SIZE; d++) {
+        free(buffers[l][d].input.datapoints);
       }
+      nextBufferSlot[l] = buffers[l];
     }
-    trainNetwork(n, trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
-    yield();
-  // }
+  }
+  trainNetwork(n, trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
+  yield();
 }
 
 void onNewNodeData() {
@@ -326,13 +324,10 @@ void sendDataToServer() {
         Serial.print("[DATAHUB] ");
         Serial.print(line);
         Serial.println(" [/DATAHUB]");
-        char* serverResopnse = (char*)malloc(sizeof(char)*line.length());
+        char* serverResopnse = (char*)malloc(sizeof(char)*(line.length()+1));
         
         strcpy(serverResopnse, line.c_str());
-        Serial.println((int)serverResopnse);
         parseServerResponse(serverResopnse);
-        Serial.println((int)serverResopnse);
-        
         free(serverResopnse);
       }
       if(line.length() < 2) {
@@ -366,7 +361,6 @@ void sendDataToServer() {
 
 
 void loop() {
-
   static int nConnectedNodes = 0;
   if(thereIsNewNodeData()) {
     onNewNodeData();
@@ -386,22 +380,20 @@ void loop() {
   }
 
   if(itsTimeToSendToServer() && !client.connected()) {
-    Serial.print("HEAP: ");
+    Serial.print("Free heap: ");
     Serial.println(ESP.getFreeHeap());
-    // Serial.print("Free heap: ");
-    // Serial.println(ESP.getFreeHeap());
   
     if(WiFi.softAPgetStationNum() != nConnectedNodes) {
       nConnectedNodes = WiFi.softAPgetStationNum();
       Serial.println(String("Connected devices: " + String(nConnectedNodes)));
     }
     
-    // Serial.println("-MAPPING-");
-    // for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-    //   Serial.print(nodeMapping[i].nodeId);
-    //   Serial.print(" - ");
-    //   Serial.println(nodeMapping[i].label);
-    // }
+    Serial.println("-MAPPING-");
+    for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
+      Serial.print(nodeMapping[i].nodeId);
+      Serial.print(" - ");
+      Serial.println(nodeMapping[i].label);
+    }
     
     sendDataToServer();
   }
