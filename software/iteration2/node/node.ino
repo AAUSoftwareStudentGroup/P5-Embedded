@@ -12,32 +12,41 @@ group networkFodder;
 bool networkFodderReady = false;
 
 void setup() {
-  #ifdef TEST
-    test();
-  #endif
-  
   setup_io();
-  Serial.println();
-  Serial.println("Initializing:");
-  
-  Serial.println("-test ANN");
-  setup_neuralNetwork();
+  #ifdef TEST
+    Serial.println("Initializing test environment");
+    test();
+  #else
+    #ifdef DEBUG
+      Serial.println();
+      Serial.println("Initializing:");
+    #endif
 
-  Serial.println("- MPU");
-  mpu_setup();
+    #ifdef DEBUG
+      Serial.println("-test ANN");
+    #endif
+    setup_neuralNetwork();
 
-  Serial.println("- WIFI");
-  setup_wifi();
+    #ifdef DEBUG
+      Serial.println("- MPU");
+    #endif
+    mpu_setup();
 
-  // setup a timer interrupt that triggers every 2ms
-  noInterrupts();
-  timer0_isr_init();
-  timer0_attachInterrupt(timer0InterruptHandler);
-  // 2ms timeout
-  timer0_write(ESP.getCycleCount()+TIMER0_INTERRUPT_TIME_MICRO_SECONDS*160);
-  interrupts();
+    #ifdef DEBUG
+      Serial.println("- WIFI");
+    #endif
+    setup_wifi();
 
-  Serial.println("Starting!");
+    // setup a timer interrupt that triggers every 2ms
+    noInterrupts();
+    timer0_isr_init();
+    timer0_attachInterrupt(timer0InterruptHandler);
+    // 2ms timeout
+    timer0_write(ESP.getCycleCount()+TIMER0_INTERRUPT_TIME_MICRO_SECONDS*160);
+    interrupts();
+
+    Serial.println("Starting!");
+  #endif
 }
 
 void setup_io() {
@@ -63,7 +72,7 @@ void loop() {
 
     wifi_write(s);
     #ifdef DEBUG
-    Serial.println(s);
+      Serial.println(s);
     #endif
   }
 }

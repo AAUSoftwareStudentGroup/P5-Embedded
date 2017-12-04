@@ -1,6 +1,8 @@
 "<type>#<data>"
 
 device -> pc:
+	"START#": Begin accepting commands
+	"DEBUG#<text>": Debugging prints
 	"command#send_data": Send next datapoint
 	"command#send_next_result": Send next result
 pc -> device: 
