@@ -5,7 +5,7 @@ import signal
 import sys, time
 
 PORT = 8085
-IP = 92
+IP = 165
 
 localIP = socket.gethostbyname(socket.gethostname())
 # remove last part of ip : 192.168.1.132 -> 192.168.1.{}
@@ -28,11 +28,12 @@ while(running):
     sock.sendto('a', (apip, PORT))
     rawdata,(senderIp,_) = sock.recvfrom(1024)
     data = rawdata.split(';');
+    t = float(data[0])/1000;
     x = float(data[1]);
     y = float(data[2]);
     z = float(data[3]);
     rx = float(data[4]);
-    print("[{:10.4f} {:10.4f} {:10.4f}] {:10.4f}".format(x,y,z,rx))
+    print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(t,x,y,z,rx))
     # print(rawdata)
 
     # redrawWait = int(round(time.time() * 1000))+1000/30

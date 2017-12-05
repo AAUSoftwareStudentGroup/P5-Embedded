@@ -24,6 +24,7 @@ datapoint mpu_read() {
   short tmp;
   datapoint p;
   // Serial.println(Wire.read());
+  p.T = double(millis());
   tmp = Wire.read() << 8 | Wire.read(); p.X = double(tmp);
   tmp = Wire.read() << 8 | Wire.read(); p.Y = double(tmp);
   tmp = Wire.read() << 8 | Wire.read(); p.Z = double(tmp);
