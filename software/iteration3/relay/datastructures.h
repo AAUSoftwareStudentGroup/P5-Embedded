@@ -3,13 +3,10 @@
 
 typedef struct _datapoint
 {
-  float T;
   float X;
   float Y;
   float Z;
   float RX;
-  float RY;
-  float RZ;
 } datapoint;
 
 typedef struct _group
