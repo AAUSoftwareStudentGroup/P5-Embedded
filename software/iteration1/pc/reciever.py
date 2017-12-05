@@ -33,7 +33,9 @@ while(running):
     y = float(data[2]);
     z = float(data[3]);
     rx = float(data[4]);
-    print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(t,x,y,z,rx))
+    ry = float(data[5]);
+    rz = float(data[6]);
+    print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(t,x,y,z,rx,ry,rz))
     # print(rawdata)
 
     # redrawWait = int(round(time.time() * 1000))+1000/30

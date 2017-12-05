@@ -52,13 +52,13 @@ void loop() {
 
 void wifi_write_datapoint(datapoint dp) {
   String s = "";
-  s += String(dp.T, 2); s += ";";
-  s += String(dp.X/(2<<15), 2); s += ";";
-  s += String(dp.Y/(2<<15), 2); s += ";";
-  s += String(dp.Z/(2<<15), 2); s += ";";
-  s += String(dp.RX/(2<<15), 2); s += ";";
-  s += String(dp.RY/(2<<15), 2); s += ";";
-  s += String(dp.RZ/(2<<15), 2); s += ";";
+  s += String(dp.T, 8); s += ";";
+  s += String(dp.X/(2<<15), 8); s += ";";
+  s += String(dp.Y/(2<<15), 8); s += ";";
+  s += String(dp.Z/(2<<15), 8); s += ";";
+  s += String(dp.RX/(2<<15), 8); s += ";";
+  s += String(dp.RY/(2<<15), 8); s += ";";
+  s += String(dp.RZ/(2<<15), 8); s += ";";
 
   wifi_write(s);
 }
