@@ -7,6 +7,7 @@
 
 enum ReceiverMode {
 	READING_DATA_POINT,
+	READING_RESULT,
 	READY
 };
 
