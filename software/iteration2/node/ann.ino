@@ -33,16 +33,22 @@ networkResult _eval_network(network* ann) {
     for(current = l->nodes; current < l->nodes+l->n_nodes; current++) {
       for(nextNodeIndex = 0, next = (l+1)->nodes; nextNodeIndex < (l+1)->n_nodes; nextNodeIndex++, next++) {
         next->val += current->val*current->weights[nextNodeIndex];
-       // Serial.println("next->val W:" + String(l-ann->layers) + ": " + String(current - l->nodes) + "->" + String(nextNodeIndex) + ": " + String(current->weights[nextNodeIndex], 8));
       }
     }
     for(nextNodeIndex = 0, next = (l+1)->nodes; nextNodeIndex < (l+1)->n_nodes; nextNodeIndex++, next++) {
       next->val += l->bias.weights[nextNodeIndex];
       next->val = sigmoid(next->val);
-      Serial.println("next->val: Layer " + String(l-ann->layers) + ": Node " + String(nextNodeIndex) + ": " + String(next->val, 20));
     }
   }
-  
+
+  /*for(l = ann->layers; l < ann->layers + ann->n_layers; l++)
+    for(current = l->nodes; current < l->nodes+l->n_nodes; current++)
+      Serial.println("next->val: Layer " + String(l - ann->layers) + ": Node " + String(current - l->nodes) + ": " + String(current->val, 14));
+  for(l = ann->layers; l < ann->layers + ann->n_layers; l++)
+    for(current = l->nodes; current < l->nodes+l->n_nodes; current++)
+      for(nextNodeIndex = 0; nextNodeIndex < (l+1)->n_nodes; nextNodeIndex++)
+        Serial.println("Weights: Layer " + String(l - ann->layers) + ": Node " + String(current - l->nodes) + "->" + String(nextNodeIndex) + ": " + String(current->weights[nextNodeIndex], 14));
+  */
   // copy final layer node values to result vector
   l = ann->layers + ann->n_layers-1;
   for(int i = 0; i < l->n_nodes; i++) {

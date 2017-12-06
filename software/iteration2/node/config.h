@@ -14,7 +14,7 @@
 
 	// Enable debug print
 	#define DEBUG
-	#define TEST
+	//#define TEST
 
 	// WiFi configuration
 	#define WIFI_SSID "FootballRelay"
