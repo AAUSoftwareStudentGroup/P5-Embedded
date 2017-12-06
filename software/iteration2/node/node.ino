@@ -92,25 +92,30 @@ void parseScaledSample(datapoint p) {
   static datapoint shotBuffer[10];
   static int shotBufferIndex = 0;
   static int lowRotationSpeed = 0;
+  static bool measuring = false;
 
-  // If a shot is already started OR this datapoint has a large enough rotation value to indicate that this is a new shot
-  if(shotBufferIndex > 0 || (p.RX > 0.5 || p.RX < -0.5)) {
+  bool isLowRotationSpeed = (p.RX > -0.5 && p.RX < 0.5);
+  if(measuring) {
     // if shot buffer isnt full
     if(shotBufferIndex < 10) {
       shotBuffer[shotBufferIndex++] = p;
     }
-  }
-  // if rotation speed is low
-  if((p.RX > 0.5 || p.RX < -0.5) == false) {
-    // if it's been low for a while
-    if(lowRotationSpeed++ >= 10) {
-      // reset shot buffers
-      lowRotationSpeed = 0;
-      shotBufferIndex = 0;
-      networkFodder.length = 10;
-      networkFodder.datapoints = shotBuffer;
-      networkFodderReady = true;
+  
+    if(isLowRotationSpeed) {
+      lowRotationSpeed++;
+      if(lowRotationSpeed == 10) {
+        measuring = false;
+
+        shotBufferIndex = 0;
+        networkFodder.length = 10;
+        networkFodder.datapoints = shotBuffer;
+        networkFodderReady = true;
+      }
     }
+  }
+  if(!isLowRotationSpeed) {
+    measuring = true;
+    lowRotationSpeed = 0;
   }
 }
 
