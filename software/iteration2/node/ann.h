@@ -9,6 +9,7 @@ extern network ann;
 
 void setup_neuralNetwork();
 double sigmoid(double x);
+networkResult _eval_network(network* ann);
 networkResult EvaluateNetwork(group g);
 
 #endif

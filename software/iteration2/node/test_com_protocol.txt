@@ -3,8 +3,8 @@
 device -> pc:
 	"START#": Begin accepting commands
 	"DEBUG#<text>": Debugging prints
-	"command#send_data": Send next datapoint
-	"command#send_next_result": Send next result
+	"COMMAND#SEND_DATAPOINT": Send next datapoint
+	"COMMAND#SEND_RESULT": Send next result
 pc -> device: 
-	"datapoint#<datapointFromCSV>": Next datapoint
-	"result#<resultFromNetwork>": Next result from network
+	"DATAPOINT#<datapointFromCSV>": Next datapoint
+	"RESULT#<resultFromNetwork>": Next result from network
