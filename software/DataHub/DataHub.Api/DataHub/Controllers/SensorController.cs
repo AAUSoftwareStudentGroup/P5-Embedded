@@ -150,16 +150,15 @@ namespace DataHub.Controllers
         }
 
         [HttpGet]
-        [Route("api/sensor/{sensorId}/data/{windowSize}")]
-        public Response<Dictionary<string, double>> GetAccumulatedLiveData(string sensorId, int? windowSize)
+        [Route("api/sensor/{sensorId}/data/accumulate")]
+        public Response<Dictionary<string, double>> GetAccumulatedLiveData(string sensorId)
         {
-            windowSize = Math.Max(1, windowSize ?? 10);
             Dictionary<string, List<double>> grouped = new Dictionary<string, List<double>>();
 
             var ordered = GetLiveData(sensorId).Data;
             var sensors = GetSensors().Data;
 
-            foreach (var data in ordered.Reverse().Take(windowSize.Value).Reverse()) //Last 20 classifications
+            foreach (var data in ordered)
             {
                 foreach (var classification in data.Classifications.Where(c => sensors.FirstOrDefault(s => s.Mac == data.Mac).Labels.Contains(c.Key)))
                 {

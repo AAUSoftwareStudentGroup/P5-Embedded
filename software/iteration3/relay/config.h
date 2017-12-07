@@ -43,7 +43,7 @@
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "sugar94noise"
+	#define WIFI_PASS "put83cause"
 //	#define WIFI_SSID "Tardis"
 //	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085

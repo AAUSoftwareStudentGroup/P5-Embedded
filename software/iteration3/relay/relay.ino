@@ -316,6 +316,13 @@ void parseServerResponse(char* serverResopnse) {
   // server response format
   // "345645678910#Label1;A020A61AD519#;2C3AE8340553#invalidString;"
 
+  if(strcmp(serverResopnse, "\"\"") == 0){
+    for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
+      nodeMapping[i].label = NONE_STR;
+    }
+    return;
+  }
+
   char* id;
   char* label;
   if(*serverResopnse == '"') {
