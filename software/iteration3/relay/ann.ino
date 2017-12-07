@@ -53,9 +53,10 @@ networkResult EvaluateNetwork(network* ann, group g) {
   return ann->lastResult;
 }
 
-network initiateRandomNetwork(char** labels, int n_labels) {
+network initiateRandomNetwork(char** labels) {
   const int n_layers = 3;
-  int layerSizes[n_layers] = {40, 100, 2};
+  int n_labels = NUMBER_OF_LABELS;
+  int layerSizes[n_layers] = {INPUT_NEURONS, HIDDEN_NEURONS, NUMBER_OF_LABELS};
 
   network n;
 
@@ -222,6 +223,8 @@ networkResult trainNetwork(network* n, example* examples, int n_examples) {
 
     // update weights based on errors
     _updateWeights(n, LEARNING_RATE);
+
+    yield();
   }
 
   return res;

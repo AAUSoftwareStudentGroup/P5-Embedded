@@ -6,8 +6,6 @@
 #include "config.h"
 #include "ann.h"
 
-
-
 static int LED_state = 0;
 WiFiClient client;
 WiFiUDP UDP;
@@ -19,7 +17,7 @@ typedef struct _idToLabel {
 } idToLabel;
 
 idToLabel nodeMapping[MAX_NUMBER_OF_NODES];
-char* labels[NUMBER_OF_LABELS] = {"Anton", "Morten"};
+char* labels[NUMBER_OF_LABELS] = {"Player1", "Player2"};
 float networkExpectedResultForLabel[NUMBER_OF_LABELS][NUMBER_OF_LABELS] = {{1,0}, {0,1}};
 
 String outbuffer = String("");
@@ -28,7 +26,16 @@ String outbuffer = String("");
 example buffers[NUMBER_OF_LABELS][MAX_DATA_BUFFER_SIZE]; // buffers are structured as: TRAIN_DATA_BUFFER_SIZE examples + VALIDATION_DATA_BUFFER_SIZE examples + additional new examples 
 example* nextBufferSlot[NUMBER_OF_LABELS];
 
+void logline(const char *alias, const char *message) {
+  Serial.print(millis(), DEC);
+  Serial.print(":");
+  Serial.print(alias);
+  Serial.print(":");
+  Serial.println(message);
+}
+
 void setup() {
+  logline("setup", "started");
   // setup next buffer slots
   for(int i = 0; i < NUMBER_OF_LABELS; i++) {
     nextBufferSlot[i] = buffers[i]; //point to first element in buffer for each label i.  
@@ -43,36 +50,48 @@ void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);
 
-  Serial.println("- WIFI");
+  logline("setupWifi", "started");
   setupWifi();
+  logline("setupWifi", "done");
 
-  Serial.println("- ANN");
-  neuralNet = initiateRandomNetwork(labels, NUMBER_OF_LABELS);
-  
-  Serial.println("- UDP socket");
+  logline("initiateRandomNetwork", "started");
+  logline("INPUT_NEURONS", String(INPUT_NEURONS).c_str());
+  logline("HIDDEN_NEURONS", String(HIDDEN_NEURONS).c_str());
+  logline("NUMBER_OF_LABELS", String(NUMBER_OF_LABELS).c_str());
+  neuralNet = initiateRandomNetwork(labels);
+  logline("initiateRandomNetwork", "done");
+
+  logline("UDP.begin", "started");
   while(UDP.begin(UDP_PORT) == 0);
+  logline("UDP.begin", "done");
 
   randomSeed(micros());
+  logline("setup", "done");
 }
 
 void setupWifi() {
 
   // Create access point
-  Serial.println(String("Creating access point \"")+ WIFI_AP_SSID + "\" without password");
+  logline("setup access point", "started");
+  logline("WIFI_AP_SSID", WIFI_AP_SSID);
   WiFi.mode(WIFI_AP_STA);
   while(!WiFi.softAP(WIFI_AP_SSID)) {
-    Serial.println("Failed to create access point");
+    logline("setup access point", "failed");
   }
-
+  logline("setup access point", "done");
   // Connect to wifi
+  logline("connect to access point", "started");
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  Serial.print(String("Connecting to wifi: \"") + WIFI_SSID + "\" with pass: \"" + WIFI_PASS + "\"");
+  logline("WIFI_SSID", WIFI_SSID);
+  logline("WIFI_PASS", WIFI_PASS);
   // Wait for connection
   while(WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
+    logline("WiFi status", "not connected");
     delay(500);
     digitalWrite(PIN_LED, LED_state++ % 2);
   }
+  logline("WiFi status", "connected");
+  logline("connect to access point", "done");
 }
 
 void parseMac(char* buffer, char** mac, char** endOfMac) {
@@ -153,6 +172,7 @@ bool thereIsNewNodeData() {
   return (UDP.parsePacket() > 0);
 }
 
+//Calculate networks mean squared error on validation data in buffers
 float calculateMSE(network *n) {
   float errorSum = 0;
   float error;
@@ -172,19 +192,40 @@ float calculateMSE(network *n) {
   return errorSum / count;
 }
 
+//Shuffle data using Fisher-Yates shuffle algorithm
+void shuffleData(example *data, int count) {
+   for(int i = 0; i < count; i++) {
+    int randomIndex = random(count);
+    example temp = data[i];
+    data[i] = data[randomIndex];
+    data[randomIndex] = temp;
+  }
+}
+
 void train(network *n) {
   static float lowerstValidationError = 100000000;
   static int numberOfDidNotImproveTrainings = 0;
-  example trainingData[TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS];
+  static bool copyBuffers = true;
+  static example trainingData[TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS];
 
-  for(int d = 0; d < TRAIN_DATA_BUFFER_SIZE; d++) {
-    for(int i = 0; i < NUMBER_OF_LABELS; i++) {
-      trainingData[d * NUMBER_OF_LABELS + i] = buffers[i][d];    
+  //Only copy buffers to trainingData the first iteration of each training session
+  if(copyBuffers) {
+    copyBuffers = false;
+    for(int i = 0; i < NUMBER_OF_LABELS; i++) { //Shuffle data buffers to get validation data across randomly from data collected
+      shuffleData(buffers[i], TRAIN_DATA_BUFFER_SIZE + VALIDATION_DATA_BUFFER_SIZE);
+    }
+    for(int d = 0; d < TRAIN_DATA_BUFFER_SIZE; d++) {
+      for(int i = 0; i < NUMBER_OF_LABELS; i++) {
+        trainingData[d * NUMBER_OF_LABELS + i] = buffers[i][d];    
+      }
     }
   }
 
+  //Shuffle traning data each iteration
+  shuffleData(trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
+
   float validationError = calculateMSE(n);
-  Serial.println(/*String(e) + */String(": Validation error: ") + String(validationError,4));
+  logline("validationError", String(validationError,4).c_str());
 
   if(validationError < lowerstValidationError-REQUIRED_IMPROVEMENT) {
     lowerstValidationError = validationError;
@@ -200,9 +241,11 @@ void train(network *n) {
       }
       nextBufferSlot[l] = buffers[l];
     }
+    copyBuffers = true;
+    logline("train", "done");
+    return;
   }
   trainNetwork(n, trainingData, TRAIN_DATA_BUFFER_SIZE * NUMBER_OF_LABELS);
-  yield();
 }
 
 void onNewNodeData() {
@@ -214,8 +257,8 @@ void onNewNodeData() {
   // read data
   int len = UDP.read(udpInputBuffer, NODE_BUFFER_SIZE-1);
   udpInputBuffer[len] = '\0'; 
-  Serial.print("[NODE] ");
-  Serial.println(udpInputBuffer);
+  
+  logline("udpInputBuffer", udpInputBuffer);
   
   // read macaddress and shot data
   parseMac(udpInputBuffer, &macAddrStr, &shotStr);
@@ -225,7 +268,7 @@ void onNewNodeData() {
   e.input = shot;
   int labelIndex;
   if(getLabelForNode(macAddrStr, &(e.output), &labelIndex)) {
-    Serial.println(nextBufferSlot[labelIndex] - buffers[labelIndex]);
+    logline(labels[labelIndex], String(nextBufferSlot[labelIndex] - buffers[labelIndex]).c_str());
     if(nextBufferSlot[labelIndex] - buffers[labelIndex] < MAX_DATA_BUFFER_SIZE) { // If buffer for label is not full
       *(nextBufferSlot[labelIndex]) = e; // Add example to buffer for label with index i;
       nextBufferSlot[labelIndex] += 1; // Move next available slot
@@ -311,7 +354,7 @@ void sendDataToServer() {
   if(client.connected()) {
     // If the request takes too long
     if (timeout-(int)millis() < 0) {
-      Serial.println("Client Timeout !");
+      logline("client", "timeout");
       client.stop();
       return;
     }
@@ -321,9 +364,7 @@ void sendDataToServer() {
       
       if(currentlyReadingHeader == false) {
       
-        Serial.print("[DATAHUB] ");
-        Serial.print(line);
-        Serial.println(" [/DATAHUB]");
+        logline("datahub response", line.c_str());
         char* serverResopnse = (char*)malloc(sizeof(char)*(line.length()+1));
         
         strcpy(serverResopnse, line.c_str());
@@ -339,18 +380,21 @@ void sendDataToServer() {
   else {
     client.stop();
     // Connect to server
+    logline("connecting to server", "started");
     if (!client.connect(HTTP_HOST, HTTP_PORT)) {
-      Serial.println("Connection failed");
+      logline("connecting to server", "failed");
       return;
     }
-    Serial.println(outbuffer);
+    logline("connecting to server", "done");
+    logline("outbuffer", outbuffer.c_str());
     // Send buffer to server
+    logline("sending buffer", "started");
     client.print(String("POST") + " /api/sensor/data HTTP/1.1\r\n" \
                  "Host: " + HTTP_HOST + "\r\n" \
                  "Content-Type: application/json\r\n" \
                  "Content-Length: "+ (outbuffer.length()+2) +"\r\n" \
                  "Connection: close\r\n\r\n"+"\"" + outbuffer + "\"");
-    
+    logline("sending buffer", "done");
     outbuffer = String("");
 
     // Wait till done 
@@ -380,19 +424,15 @@ void loop() {
   }
 
   if(itsTimeToSendToServer() && !client.connected()) {
-    Serial.print("Free heap: ");
-    Serial.println(ESP.getFreeHeap());
+    logline("free heap", String(ESP.getFreeHeap()).c_str());
   
     if(WiFi.softAPgetStationNum() != nConnectedNodes) {
       nConnectedNodes = WiFi.softAPgetStationNum();
-      Serial.println(String("Connected devices: " + String(nConnectedNodes)));
+      logline("connected devices", String(nConnectedNodes).c_str());
     }
     
-    Serial.println("-MAPPING-");
     for(int i = 0; i < MAX_NUMBER_OF_NODES; i++) {
-      Serial.print(nodeMapping[i].nodeId);
-      Serial.print(" - ");
-      Serial.println(nodeMapping[i].label);
+      logline(nodeMapping[i].nodeId, nodeMapping[i].label);
     }
     
     sendDataToServer();

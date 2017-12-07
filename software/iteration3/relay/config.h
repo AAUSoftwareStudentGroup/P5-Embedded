@@ -26,9 +26,9 @@
 	#define MAX_EPOCHS 100
 	#define REQUIRED_IMPROVEMENT 0.01
 	#define ALLOWED_ITERATIONS_WHERE_TRAINING_DOES_NOT_IMPROVE 5 
-	#define TRAIN_DATA_BUFFER_SIZE 10
+	#define TRAIN_DATA_BUFFER_SIZE 20
 	#define VALIDATION_DATA_BUFFER_SIZE 10
-	#define MAX_DATA_BUFFER_SIZE 20
+	#define MAX_DATA_BUFFER_SIZE (TRAIN_DATA_BUFFER_SIZE + VALIDATION_DATA_BUFFER_SIZE)
   
 	// Encog parser configuration
 	#define ENCOG_LABEL_MAX_LENGTH 16 				// Size of buffer wherein ENCOG labels are read into
@@ -37,11 +37,13 @@
 
 	#define MAX_NUMBER_OF_NODES 4
 	#define NUMBER_OF_LABELS 2
+  #define HIDDEN_NEURONS 100
+  #define INPUT_NEURONS 40
 
 	// WiFi configuration
 	#define WIFI_AP_SSID "FootballRelay"
 	#define WIFI_SSID "AAU-1-DAY"
-	#define WIFI_PASS "insurance76middle"
+	#define WIFI_PASS "sugar94noise"
 //	#define WIFI_SSID "Tardis"
 //	#define WIFI_PASS "geronimo"
 	#define UDP_PORT 8085
