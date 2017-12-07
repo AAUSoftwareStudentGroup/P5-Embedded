@@ -35,6 +35,10 @@ void logline(const char *alias, const char *message) {
 }
 
 void setup() {
+  // setup serial for debugging
+  Serial.begin(115200);
+  pinMode(PIN_LED, OUTPUT);
+
   logline("setup", "started");
   // setup next buffer slots
   for(int i = 0; i < NUMBER_OF_LABELS; i++) {
@@ -45,10 +49,6 @@ void setup() {
     nodeMapping[i].nodeId[0] = '\0';
     nodeMapping[i].label = NONE_STR;
   }
-
-  // setup serial for debugging
-  Serial.begin(115200);
-  pinMode(PIN_LED, OUTPUT);
 
   logline("setupWifi", "started");
   setupWifi();
