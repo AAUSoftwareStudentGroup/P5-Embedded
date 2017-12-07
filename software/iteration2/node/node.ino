@@ -91,18 +91,31 @@ void timer0InterruptHandler() {
 void parseScaledSample(datapoint p) {
   static datapoint shotBuffer[10];
   static int shotBufferIndex = 0;
+  static int lowRotationSpeed = 0;
+  static bool measuring = false;
 
-  // If a shot is already started OR this datapoint has a large enough rotation value to indicate that this is a new shot
-  if(shotBufferIndex > 0 || (p.RX > 0.5 || p.RX < -0.5)) {
-    shotBuffer[shotBufferIndex++] = p;
-    if(shotBufferIndex >= 10) {
-      shotBufferIndex = 0;
-      
-      networkFodder.length = 10;
-      networkFodder.datapoints = shotBuffer;
-
-      networkFodderReady = true;
+  bool isLowRotationSpeed = (p.RX > -0.5 && p.RX < 0.5);
+  if(measuring) {
+    // if shot buffer isnt full
+    if(shotBufferIndex < 10) {
+      shotBuffer[shotBufferIndex++] = p;
     }
+  
+    if(isLowRotationSpeed) {
+      lowRotationSpeed++;
+      if(lowRotationSpeed == 10) {
+        measuring = false;
+
+        shotBufferIndex = 0;
+        networkFodder.length = 10;
+        networkFodder.datapoints = shotBuffer;
+        networkFodderReady = true;
+      }
+    }
+  }
+  if(!isLowRotationSpeed) {
+    measuring = true;
+    lowRotationSpeed = 0;
   }
 }
 
