@@ -1,0 +1,80 @@
+C15 = BLÅ
+553 = RØD
+
+test1:
+  player1 = anton
+  player2 = morten
+  
+  training: 
+    - player1 på blå
+    - player2 på rød
+    - 1 trænings iteration (spil til bufferen var fyldt)
+
+  training 2: 
+    - player1 på rød
+    - player2 på blå
+    - 1 trænings iteration (spil til bufferen var fyldt)
+
+  evaluering 1: 
+    - player1 på rød
+    - player2 på blå
+    - først til 10 point
+    - note: Anton smadrede Morten
+
+  evaluering 2:
+    - player1 på blå
+    - player2 på rød
+    - først til 10 point
+    - note: Morten vandt en lille smule
+
+test2:
+  player1 = anton
+  player2 = ibsen
+  
+  training: 
+    - player1 på blå
+    - player2 på rød
+    - 1 trænings iteration (spil til bufferen var fyldt)
+
+  training 2: 
+    - player1 på rød
+    - player2 på blå
+    - 1 trænings iteration (spil til bufferen var fyldt)
+
+  evaluering 1: 
+    - player1 på rød
+    - player2 på blå
+    - først til 10 point
+    - note: anton vandt
+
+  evaluering 2:
+    - player1 på blå
+    - player2 på rød
+    - først til 10 point
+    - note: anton vandt
+
+test3:
+  player1 = ibsen
+  player2 = morten
+  
+  training: 
+    - player1 på blå
+    - player2 på rød
+    - 1 trænings iteration (spil til bufferen var fyldt)
+
+  training 2: 
+    - player1 på rød
+    - player2 på blå
+    - 1 trænings iteration (spil til bufferen var fyldt)
+
+  evaluering 1: 
+    - player1 på rød
+    - player2 på blå
+    - først til 10 point
+    - note: morten vandt
+
+  evaluering 2:
+    - player1 på blå
+    - player2 på rød
+    - først til 10 point
+    - note: morten vandt
