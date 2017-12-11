@@ -12,3 +12,6 @@ For questions, contact sw512e17@cs.aau.dk
  - Mathias Rohde Pihl
  - Morten Rask Andersen
  - Steffan Riemann Andersen
+
+
+RNN and ANN models used for analysing purposes can be found in directories ML_Models_Python and Datahub.client on the MLModelsAnalysis branch, respectively.
