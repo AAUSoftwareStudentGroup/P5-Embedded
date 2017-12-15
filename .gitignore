@@ -1,0 +1,11 @@
+data/
+*.csv
+venv/
+*.cache
+*.ide
+*.pkl
+software/DataHub/DataHub.Api/DataHub/App_Data/ModelFiles/
+.idea/
+__pycache__/
+*.pyc
+*.vs/

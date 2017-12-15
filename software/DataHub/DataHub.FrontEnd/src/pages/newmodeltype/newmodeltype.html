@@ -1,0 +1,37 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<div style="width: 95%;">
+			<h2 style="float:left;">New Type</h2>
+			<div class="button-save" (click)="save()">Save</div>
+		</div>
+		<div style="clear: both">
+			<h3 style="margin-bottom: 5px;">Name</h3>
+			<div style="width: 100%;">
+				<input type="text" [ngModel]="modelType.Name" (ngModelChange)="modelType.Name = $event" class="input-field" style="width: 40%;margin: 0px;">
+			</div>
+		</div>
+		<h3 style="margin-bottom: 5px;display: inline-block;">Properties</h3>
+		<img src="/assets/gfx/add-icon.png" (click)="addProperty()" class="add-icon">
+		<div style="width: 100%;">
+			<div style="top: 180px;;z-index: 99;margin-bottom: 5px;padding-right: 5px;" class="separator-upper"></div>
+			<div class="list" style="top:180px;">
+				<div class="box" style="padding-top: 10px;">
+					<div *ngFor="let property of modelType.Properties">
+						<div class="datalist-row">
+						<input placeholder="Name" [ngModel]="property.Name" (ngModelChange)="property.Name = $event;" type="text" class="input-field" style="width: 45%;margin: 0px;margin-right: 10px;">
+						<select type="text" [ngModel]="property.Type" (ngModelChange)="property.Type = $event" class="input-field" style="width: 45%;margin: 0px;">
+							<option value="">Choose Property Type</option>
+							<option value="Integer">Integer</option>
+							<option value="Real">Real</option>
+							<option value="String">String</option>
+						</select>
+						<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteProperty(property)" style="margin-top:7px;">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div style="bottom: 15px;width:95%" class="separator-lower"></div>
+		</div>
+
+	</div>
+</div>

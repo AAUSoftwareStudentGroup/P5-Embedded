@@ -1,0 +1,269 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* open-sans-regular - latin */
+@font-face {
+  font-family: 'OpenSans';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/open-sans-v13-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local('OpenSans'), local('OpenSans'),
+       url('/assets/fonts/open-sans-v13-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('/assets/fonts/open-sans-v13-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/assets/fonts/open-sans-v13-latin-regular.woff') format('woff'), /* Modern Browsers */
+       url('/assets/fonts/open-sans-v13-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('/assets/fonts/open-sans-v13-latin-regular.svg#OpenSans') format('svg'); /* Legacy iOS */
+}
+
+html, body {
+	margin: 0;
+	padding: 0;
+	font-family: "OpenSans", "Verdana", "Arial", "Times New Roman";
+	background-color: #f0f0f0;
+}
+
+.separator-upper, .separator-lower {
+	position: absolute;
+	height: 4px;
+	right: 15px; 
+	z-index: 1000;
+	left: 15px;  
+	background-color: #f0f0f0;
+}
+
+.separator-upper {
+	box-shadow: 0px 4px 4px 0px lightgrey; 
+}
+
+.add-button {
+	display: inline-block; 
+}
+
+.separator-lower {
+	box-shadow: 0px -4px 4px 0px lightgrey; 
+}
+
+.box {
+}
+
+.menu {
+	position: absolute;
+    width: 100px;
+    height: 100%;
+    background-color: #dddddd;
+	overflow: hidden;
+}
+
+.menu-item {
+	width: 100px;
+	height: 100px;
+	text-align: center;
+	color: gray;
+}
+
+:focus {
+    outline: 0;
+}
+
+.selected {
+	position: absolute;
+	width: 20px;
+	right: -10px;
+	margin-top: 40px;
+	z-index: 999;
+	height: 20px;
+	-ms-transform: rotate(45deg); /* IE 9 */
+    -webkit-transform: rotate(45deg); /* Chrome, Safari, Opera */
+    transform: rotate(45deg);
+	box-shadow: 0px 0px 5px gray;
+	background-color: #f0f0f0;
+}
+
+.menu-item > img {
+	width: 50px;
+	height: 50x;
+	opacity: 0.5;
+	margin-top: 10px;
+}
+
+.menu-item:hover > img {
+	opacity: 0.9;	
+	cursor: pointer;
+}
+
+.menu-item:hover {
+	cursor: pointer;
+	color: black;
+	background-color: #eaeaea;
+}
+
+.content {
+	position: absolute;
+	left: 100px;
+	top: 0px;
+	right: 0px;
+	padding: 20px;
+	padding-top: 0px;
+	bottom: 0px;
+	box-shadow: 0px 0px 5px gray;
+}
+
+.datalist-row {
+	padding: 10px;
+	background-color: white;
+	box-shadow: 0px 0px 5px gray;
+}
+
+.datalist-row:hover {
+	background-color: #eaeaea;
+}
+
+.chart-full {
+	position: absolute;
+	top: 70px;
+	bottom: 20px;
+	right: 20px;
+	left: 20px;
+	z-index: 2;
+	box-shadow: 0px 0px 5px gray;
+	display: block;
+}
+
+.chart-half {
+	right: 20px;
+	left: 20px;
+	margin-bottom: 20px;
+	z-index: 2;
+	box-shadow: 0px 0px 5px gray;
+	display: block;
+}
+
+.btn-white {
+	display: inline-block;
+	background-color: #42A6C2;
+	color:white;
+	cursor: pointer;
+	padding: 10px;
+	box-shadow: 0px 0px 5px gray;
+}
+
+.upload-container {
+	position: absolute;
+	right: 20px;
+	left: 20px;
+	box-shadow: 0px 0px 5px gray;
+	padding: 10px;
+	background-color: white;
+	display: block;
+} 
+
+.center {
+	text-align: center;
+}
+
+.upload-icon {
+	opacity: 0.5;
+	width: 50px;
+	margin-top: 20px;
+}
+
+@keyframes loading-rotation {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(359deg); }
+}
+
+.loading-icon {
+	opacity: 0.5;
+	margin-top: 20px;
+	width: 50px;	
+	animation: loading-rotation 0.7s steps(8) infinite;
+}
+
+.upload-button {
+	cursor: pointer;
+}
+
+.list {
+	position: absolute;
+	top: 65px;
+	bottom: 20px;
+	left: 0px;
+	right: 0px;
+	padding: 20px;
+	padding-top: 5px;
+	padding-right: 5px;
+	overflow-y: scroll;
+}
+
+.delete-icon {
+	height: 1em;
+	float:right;
+	margin-top: 3px;
+	opacity: 0.5;
+	cursor: pointer;
+	width: 1em;
+}
+
+.download-icon {
+	height: 1em;
+	float:right;
+	margin-right: 1em;
+	margin-left: 1em;
+	margin-top: 3px;
+	opacity: 0.5;
+	cursor: pointer;
+	width: 1em;
+}
+
+.input-field, .button-save {
+	display: inline-block; 
+	border: none; 
+	font-size: 1.17em; 
+	padding: 5px; 
+	box-shadow: 0px 0px 5px gray;
+	margin-left: 20px;
+}
+
+.button-save {
+	background-color: white;
+	cursor: pointer;
+	margin-top: 20px; 
+	margin-right: -10px;
+}
+
+.button-save:hover {
+	background-color: #eaeaea;
+}
+
+.delete-icon:hover {
+	opacity: 1;
+}
+
+.download-icon:hover {
+	opacity: 1;
+}
+
+.radio-icon {
+	height: 1em;
+	cursor: pointer;
+	width: 1em;
+}
+
+.add-icon {
+	height: 1.17em;
+	cursor: pointer;
+	width: 1.17em;
+	opacity: 0.5;
+	vertical-align: -4px;
+	margin-left: 5px;
+}
+
+.add-icon:hover {
+	opacity: 1;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.delete-icon:hover {
+}

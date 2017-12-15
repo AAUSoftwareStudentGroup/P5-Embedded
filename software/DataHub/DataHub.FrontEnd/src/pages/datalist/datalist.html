@@ -1,0 +1,28 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<h2 style="display: inline-block;">Data</h2>
+        <img src="/assets/gfx/add-icon.png" [routerLink]="['/new']" class="add-icon">
+        <div *ngIf="loading" class="center upload-button">
+            <img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+            Loading
+        </div>
+        <div style="top: 60px;" class="separator-upper"></div>
+        <div class="list">
+            <div class="box">
+                <div *ngFor="let dataset of datalist">
+                    <div class="datalist-row">
+                    <div style="display: inline-block; cursor: pointer; width:50%;" [routerLink]="['/dataset', dataset.Id]">
+                    {{ dataset.Name }}
+                    </div>
+                    <div style="display: inline-block; cursor: pointer; width:40%;" [routerLink]="['/dataset', dataset.Id]">
+                    {{ dataset.MeasuredDate | date:'medium' }}
+                    </div>
+                    <img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteDataSet(dataset)">
+                    <img src="/assets/gfx/download-icon.png" class="download-icon" (click)="downloadDataSet(dataset)">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="bottom: 15px;" class="separator-lower"></div>
+	</div>
+</div>

@@ -1,0 +1,53 @@
+<div id="dataset" class="wrapper">
+	<div class="main">
+		<h2>Label</h2>
+		<h3 style="margin-top: 0px;">Choose data</h3>
+		<div style="top: 100px;" class="separator-upper"></div>
+		<div class="list" style="bottom: 50%; margin-top:40px;">
+			<div *ngIf="loading" class="center upload-button">
+				<img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+				Loading
+			</div>
+            <div class="box" style="margin: 0px;">
+                <div *ngFor="let dataset of datalist" class="pointer" (click)="selectDataset(dataset)">
+                    <div class="datalist-row">
+						<img *ngIf="selected == dataset" src="/assets/gfx/radio-icon-selected.png" class="radio-icon">
+						<img *ngIf="selected != dataset" src="/assets/gfx/radio-icon.png" class="radio-icon">
+						{{ dataset.Name }}
+						<div style="float: right;">
+						{{ dataset.MeasuredDate | date:'medium' }}
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div style="top: 50%;" class="separator-lower"></div>
+		<div *ngIf="selected != null">
+			<div style="top: 50%;margin-top: 45px;" class="separator-upper"></div>
+			<div style="position:absolute; top: 50%;">
+			<h3 style="display: inline-block;">Select labels for '{{ selected.Name }}'</h3>
+			<input type="text" placeholder="New label" [ngModel]="newLabelName" (ngModelChange)="newLabelName = $event" (keyup)="checkEnter($event)" class="input-field">
+			<img src="/assets/gfx/add-icon.png" (click)="addNewLabel()"  class="add-icon">
+			</div>
+			<div *ngIf="loadingLabels" class="center upload-button" style="position:absolute; left: 50%; margin-left: -25px;  top: 50%;margin-top: 50px;">
+				<img class="loading-icon" src="assets/gfx/loading-icon.png"><br>
+				Loading
+			</div>
+			<div *ngIf="!loadingLabels" class="list" style="top: 50%;margin-top: 50px; bottom: 20px;">
+				<div class="box">
+					<div *ngFor="let label of labels" class="pointer">
+						<div class="datalist-row">
+							<img  (click)="selectLabel(label)" *ngIf="selectedLabels.indexOf(label) != -1" src="/assets/gfx/select-icon-selected.png" class="radio-icon">
+							<img  (click)="selectLabel(label)" *ngIf="selectedLabels.indexOf(label) == -1" src="/assets/gfx/select-icon.png" class="radio-icon">
+							<div style="display:inline-block;width:40%" (click)="selectLabel(label)">
+							{{ label.Name }}
+							</div>
+							<img src="/assets/gfx/delete-icon.png" class="delete-icon" (click)="deleteLabel(label)">
+						</div>
+					</div> 
+				</div>
+			</div>
+			<div style="bottom: 20px;" class="separator-lower"></div>
+		</div>
+	</div>
+</div>

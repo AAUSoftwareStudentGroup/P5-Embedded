@@ -1,0 +1,913 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="DataHub.Models.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012.Azure" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Classification">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LabelId" Type="int" Nullable="false" />
+          <Property Name="DataSetId" Type="int" Nullable="false" />
+          <Property Name="Confidence" Type="real" Nullable="false" />
+          <Property Name="TestResulId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DataSet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="LocalFileName" Type="varchar" MaxLength="256" Nullable="false" />
+          <Property Name="UploadedDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="MeasuredDate" Type="datetime2" Precision="7" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Label">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Mapping">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DataSetId" Type="int" Nullable="false" />
+          <Property Name="LabelId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Model">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="ModelTypeId" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ModelType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreatedDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="IsActive" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Parameter">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Value" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ModelId" Type="int" Nullable="false" />
+          <Property Name="PropertyId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Property">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ModelTypeId" Type="int" Nullable="false" />
+          <Property Name="Type" Type="varchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Test">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Created" Type="nchar" MaxLength="10" />
+          <Property Name="IsActive" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TestDataSet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TestId" Type="int" Nullable="false" />
+          <Property Name="DataSetId" Type="int" Nullable="false" />
+          <Property Name="IsTraningSet" Type="int" Nullable="false" />
+          <Property Name="IsTestSet" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TestLabel">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TestId" Type="int" Nullable="false" />
+          <Property Name="LabelId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TestResult">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TestId" Type="int" Nullable="false" />
+          <Property Name="CreatedDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ModelId" Type="int" Nullable="false" />
+          <Property Name="ModelFileName" Type="varchar" MaxLength="255" />
+        </EntityType>
+        <Association Name="FK__Classific__DataS__73BA3083">
+          <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
+          <End Role="Classification" Type="Self.Classification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DataSet">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Classification">
+              <PropertyRef Name="DataSetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Classific__Label__72C60C4A">
+          <End Role="Label" Type="Self.Label" Multiplicity="1" />
+          <End Role="Classification" Type="Self.Classification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Label">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Classification">
+              <PropertyRef Name="LabelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Classific__TestR__5EBF139D">
+          <End Role="TestResult" Type="Self.TestResult" Multiplicity="1" />
+          <End Role="Classification" Type="Self.Classification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TestResult">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Classification">
+              <PropertyRef Name="TestResulId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Mapping__DataSet__619B8048">
+          <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
+          <End Role="Mapping" Type="Self.Mapping" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DataSet">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Mapping">
+              <PropertyRef Name="DataSetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Mapping__LabelId__628FA481">
+          <End Role="Label" Type="Self.Label" Multiplicity="1" />
+          <End Role="Mapping" Type="Self.Mapping" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Label">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Mapping">
+              <PropertyRef Name="LabelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Model__ModelType__6383C8BA">
+          <End Role="ModelType" Type="Self.ModelType" Multiplicity="1" />
+          <End Role="Model" Type="Self.Model" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ModelType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Model">
+              <PropertyRef Name="ModelTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Parameter__Model__6477ECF3">
+          <End Role="Model" Type="Self.Model" Multiplicity="1" />
+          <End Role="Parameter" Type="Self.Parameter" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Model">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Parameter">
+              <PropertyRef Name="ModelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Parameter__Prope__59FA5E80">
+          <End Role="Property" Type="Self.Property" Multiplicity="1" />
+          <End Role="Parameter" Type="Self.Parameter" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Property">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Parameter">
+              <PropertyRef Name="PropertyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Property__settin__534D60F1">
+          <End Role="ModelType" Type="Self.ModelType" Multiplicity="1" />
+          <End Role="Property" Type="Self.Property" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ModelType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Property">
+              <PropertyRef Name="ModelTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestDataS__DataS__6477ECF3">
+          <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
+          <End Role="TestDataSet" Type="Self.TestDataSet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DataSet">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestDataSet">
+              <PropertyRef Name="DataSetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestDataS__TestI__6383C8BA">
+          <End Role="Test" Type="Self.Test" Multiplicity="1" />
+          <End Role="TestDataSet" Type="Self.TestDataSet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Test">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestDataSet">
+              <PropertyRef Name="TestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestLabel__Label__6B24EA82">
+          <End Role="Label" Type="Self.Label" Multiplicity="1" />
+          <End Role="TestLabel" Type="Self.TestLabel" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Label">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestLabel">
+              <PropertyRef Name="LabelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestLabel__TestI__6A30C649">
+          <End Role="Test" Type="Self.Test" Multiplicity="1" />
+          <End Role="TestLabel" Type="Self.TestLabel" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Test">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestLabel">
+              <PropertyRef Name="TestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestResul__Model__6EF57B66">
+          <End Role="Model" Type="Self.Model" Multiplicity="1" />
+          <End Role="TestResult" Type="Self.TestResult" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Model">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestResult">
+              <PropertyRef Name="ModelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestResul__TestI__6C190EBB">
+          <End Role="Test" Type="Self.Test" Multiplicity="1" />
+          <End Role="TestResult" Type="Self.TestResult" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Test">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestResult">
+              <PropertyRef Name="TestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="DataHubModelsStoreContainer">
+          <EntitySet Name="Classification" EntityType="Self.Classification" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DataSet" EntityType="Self.DataSet" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Label" EntityType="Self.Label" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Mapping" EntityType="Self.Mapping" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Model" EntityType="Self.Model" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ModelType" EntityType="Self.ModelType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Parameter" EntityType="Self.Parameter" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Property" EntityType="Self.Property" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Test" EntityType="Self.Test" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TestDataSet" EntityType="Self.TestDataSet" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TestLabel" EntityType="Self.TestLabel" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TestResult" EntityType="Self.TestResult" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__Classific__DataS__73BA3083" Association="Self.FK__Classific__DataS__73BA3083">
+            <End Role="DataSet" EntitySet="DataSet" />
+            <End Role="Classification" EntitySet="Classification" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Classific__Label__72C60C4A" Association="Self.FK__Classific__Label__72C60C4A">
+            <End Role="Label" EntitySet="Label" />
+            <End Role="Classification" EntitySet="Classification" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Classific__TestR__5EBF139D" Association="Self.FK__Classific__TestR__5EBF139D">
+            <End Role="TestResult" EntitySet="TestResult" />
+            <End Role="Classification" EntitySet="Classification" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Mapping__DataSet__619B8048" Association="Self.FK__Mapping__DataSet__619B8048">
+            <End Role="DataSet" EntitySet="DataSet" />
+            <End Role="Mapping" EntitySet="Mapping" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Mapping__LabelId__628FA481" Association="Self.FK__Mapping__LabelId__628FA481">
+            <End Role="Label" EntitySet="Label" />
+            <End Role="Mapping" EntitySet="Mapping" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Model__ModelType__6383C8BA" Association="Self.FK__Model__ModelType__6383C8BA">
+            <End Role="ModelType" EntitySet="ModelType" />
+            <End Role="Model" EntitySet="Model" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Parameter__Model__6477ECF3" Association="Self.FK__Parameter__Model__6477ECF3">
+            <End Role="Model" EntitySet="Model" />
+            <End Role="Parameter" EntitySet="Parameter" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Parameter__Prope__59FA5E80" Association="Self.FK__Parameter__Prope__59FA5E80">
+            <End Role="Property" EntitySet="Property" />
+            <End Role="Parameter" EntitySet="Parameter" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Property__settin__534D60F1" Association="Self.FK__Property__settin__534D60F1">
+            <End Role="ModelType" EntitySet="ModelType" />
+            <End Role="Property" EntitySet="Property" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestDataS__DataS__6477ECF3" Association="Self.FK__TestDataS__DataS__6477ECF3">
+            <End Role="DataSet" EntitySet="DataSet" />
+            <End Role="TestDataSet" EntitySet="TestDataSet" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestDataS__TestI__6383C8BA" Association="Self.FK__TestDataS__TestI__6383C8BA">
+            <End Role="Test" EntitySet="Test" />
+            <End Role="TestDataSet" EntitySet="TestDataSet" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestLabel__Label__6B24EA82" Association="Self.FK__TestLabel__Label__6B24EA82">
+            <End Role="Label" EntitySet="Label" />
+            <End Role="TestLabel" EntitySet="TestLabel" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestLabel__TestI__6A30C649" Association="Self.FK__TestLabel__TestI__6A30C649">
+            <End Role="Test" EntitySet="Test" />
+            <End Role="TestLabel" EntitySet="TestLabel" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestResul__Model__6EF57B66" Association="Self.FK__TestResul__Model__6EF57B66">
+            <End Role="Model" EntitySet="Model" />
+            <End Role="TestResult" EntitySet="TestResult" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestResul__TestI__6C190EBB" Association="Self.FK__TestResul__TestI__6C190EBB">
+            <End Role="Test" EntitySet="Test" />
+            <End Role="TestResult" EntitySet="TestResult" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DataHub.Models" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Classification">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LabelId" Type="Int32" Nullable="false" />
+          <Property Name="DataSetId" Type="Int32" Nullable="false" />
+          <Property Name="Confidence" Type="Single" Nullable="false" />
+          <Property Name="TestResulId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="DataSet" Relationship="Self.FK__Classific__DataS__73BA3083" FromRole="Classification" ToRole="DataSet" />
+          <NavigationProperty Name="Label" Relationship="Self.FK__Classific__Label__72C60C4A" FromRole="Classification" ToRole="Label" />
+          <NavigationProperty Name="TestResult" Relationship="Self.FK__Classific__TestR__5EBF139D" FromRole="Classification" ToRole="TestResult" />
+        </EntityType>
+        <EntityType Name="DataSet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="LocalFileName" Type="String" MaxLength="256" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="UploadedDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="MeasuredDate" Type="DateTime" Nullable="false" Precision="7" />
+          <NavigationProperty Name="Classification" Relationship="Self.FK__Classific__DataS__73BA3083" FromRole="DataSet" ToRole="Classification" />
+          <NavigationProperty Name="Mapping" Relationship="Self.FK__Mapping__DataSet__619B8048" FromRole="DataSet" ToRole="Mapping" />
+          <NavigationProperty Name="TestDataSet" Relationship="Self.FK__TestDataS__DataS__6477ECF3" FromRole="DataSet" ToRole="TestDataSet" />
+        </EntityType>
+        <EntityType Name="Label">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Classification" Relationship="Self.FK__Classific__Label__72C60C4A" FromRole="Label" ToRole="Classification" />
+          <NavigationProperty Name="Mapping" Relationship="Self.FK__Mapping__LabelId__628FA481" FromRole="Label" ToRole="Mapping" />
+          <NavigationProperty Name="TestLabel" Relationship="Self.FK__TestLabel__Label__6B24EA82" FromRole="Label" ToRole="TestLabel" />
+        </EntityType>
+        <EntityType Name="Mapping">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DataSetId" Type="Int32" Nullable="false" />
+          <Property Name="LabelId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="DataSet" Relationship="Self.FK__Mapping__DataSet__619B8048" FromRole="Mapping" ToRole="DataSet" />
+          <NavigationProperty Name="Label" Relationship="Self.FK__Mapping__LabelId__628FA481" FromRole="Mapping" ToRole="Label" />
+        </EntityType>
+        <EntityType Name="Model">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="255" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="ModelTypeId" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="ModelType" Relationship="Self.FK__Model__ModelType__6383C8BA" FromRole="Model" ToRole="ModelType" />
+          <NavigationProperty Name="Parameter" Relationship="Self.FK__Parameter__Model__6477ECF3" FromRole="Model" ToRole="Parameter" />
+          <NavigationProperty Name="TestResult" Relationship="Self.FK__TestResul__Model__6EF57B66" FromRole="Model" ToRole="TestResult" />
+        </EntityType>
+        <EntityType Name="ModelType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CreatedDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="IsActive" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Model" Relationship="Self.FK__Model__ModelType__6383C8BA" FromRole="ModelType" ToRole="Model" />
+          <NavigationProperty Name="Property" Relationship="Self.FK__Property__settin__534D60F1" FromRole="ModelType" ToRole="Property" />
+        </EntityType>
+        <EntityType Name="Parameter">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Value" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="ModelId" Type="Int32" Nullable="false" />
+          <Property Name="PropertyId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Model" Relationship="Self.FK__Parameter__Model__6477ECF3" FromRole="Parameter" ToRole="Model" />
+          <NavigationProperty Name="Property" Relationship="Self.FK__Parameter__Prope__59FA5E80" FromRole="Parameter" ToRole="Property" />
+        </EntityType>
+        <EntityType Name="Property">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="ModelTypeId" Type="Int32" Nullable="false" />
+          <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="ModelType" Relationship="Self.FK__Property__settin__534D60F1" FromRole="Property" ToRole="ModelType" />
+          <NavigationProperty Name="Parameter" Relationship="Self.FK__Parameter__Prope__59FA5E80" FromRole="Property" ToRole="Parameter" />
+        </EntityType>
+        <EntityType Name="Test">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Created" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="IsActive" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="TestDataSet" Relationship="Self.FK__TestDataS__TestI__6383C8BA" FromRole="Test" ToRole="TestDataSet" />
+          <NavigationProperty Name="TestLabel" Relationship="Self.FK__TestLabel__TestI__6A30C649" FromRole="Test" ToRole="TestLabel" />
+          <NavigationProperty Name="TestResult" Relationship="Self.FK__TestResul__TestI__6C190EBB" FromRole="Test" ToRole="TestResult" />
+        </EntityType>
+        <EntityType Name="TestDataSet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TestId" Type="Int32" Nullable="false" />
+          <Property Name="DataSetId" Type="Int32" Nullable="false" />
+          <Property Name="IsTraningSet" Type="Int32" Nullable="false" />
+          <Property Name="IsTestSet" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="DataSet" Relationship="Self.FK__TestDataS__DataS__6477ECF3" FromRole="TestDataSet" ToRole="DataSet" />
+          <NavigationProperty Name="Test" Relationship="Self.FK__TestDataS__TestI__6383C8BA" FromRole="TestDataSet" ToRole="Test" />
+        </EntityType>
+        <EntityType Name="TestLabel">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TestId" Type="Int32" Nullable="false" />
+          <Property Name="LabelId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Label" Relationship="Self.FK__TestLabel__Label__6B24EA82" FromRole="TestLabel" ToRole="Label" />
+          <NavigationProperty Name="Test" Relationship="Self.FK__TestLabel__TestI__6A30C649" FromRole="TestLabel" ToRole="Test" />
+        </EntityType>
+        <EntityType Name="TestResult">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TestId" Type="Int32" Nullable="false" />
+          <Property Name="CreatedDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="ModelId" Type="Int32" Nullable="false" />
+          <Property Name="ModelFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="Classification" Relationship="Self.FK__Classific__TestR__5EBF139D" FromRole="TestResult" ToRole="Classification" />
+          <NavigationProperty Name="Model" Relationship="Self.FK__TestResul__Model__6EF57B66" FromRole="TestResult" ToRole="Model" />
+          <NavigationProperty Name="Test" Relationship="Self.FK__TestResul__TestI__6C190EBB" FromRole="TestResult" ToRole="Test" />
+        </EntityType>
+        <Association Name="FK__Classific__DataS__73BA3083">
+          <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
+          <End Role="Classification" Type="Self.Classification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DataSet">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Classification">
+              <PropertyRef Name="DataSetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Classific__Label__72C60C4A">
+          <End Role="Label" Type="Self.Label" Multiplicity="1" />
+          <End Role="Classification" Type="Self.Classification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Label">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Classification">
+              <PropertyRef Name="LabelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Classific__TestR__5EBF139D">
+          <End Role="TestResult" Type="Self.TestResult" Multiplicity="1" />
+          <End Role="Classification" Type="Self.Classification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TestResult">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Classification">
+              <PropertyRef Name="TestResulId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Mapping__DataSet__619B8048">
+          <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
+          <End Role="Mapping" Type="Self.Mapping" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DataSet">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Mapping">
+              <PropertyRef Name="DataSetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestDataS__DataS__6477ECF3">
+          <End Role="DataSet" Type="Self.DataSet" Multiplicity="1" />
+          <End Role="TestDataSet" Type="Self.TestDataSet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DataSet">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestDataSet">
+              <PropertyRef Name="DataSetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Mapping__LabelId__628FA481">
+          <End Role="Label" Type="Self.Label" Multiplicity="1" />
+          <End Role="Mapping" Type="Self.Mapping" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Label">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Mapping">
+              <PropertyRef Name="LabelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestLabel__Label__6B24EA82">
+          <End Role="Label" Type="Self.Label" Multiplicity="1" />
+          <End Role="TestLabel" Type="Self.TestLabel" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Label">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestLabel">
+              <PropertyRef Name="LabelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Model__ModelType__6383C8BA">
+          <End Role="ModelType" Type="Self.ModelType" Multiplicity="1" />
+          <End Role="Model" Type="Self.Model" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ModelType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Model">
+              <PropertyRef Name="ModelTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Parameter__Model__6477ECF3">
+          <End Role="Model" Type="Self.Model" Multiplicity="1" />
+          <End Role="Parameter" Type="Self.Parameter" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Model">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Parameter">
+              <PropertyRef Name="ModelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestResul__Model__6EF57B66">
+          <End Role="Model" Type="Self.Model" Multiplicity="1" />
+          <End Role="TestResult" Type="Self.TestResult" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Model">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestResult">
+              <PropertyRef Name="ModelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Property__settin__534D60F1">
+          <End Role="ModelType" Type="Self.ModelType" Multiplicity="1" />
+          <End Role="Property" Type="Self.Property" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ModelType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Property">
+              <PropertyRef Name="ModelTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Parameter__Prope__59FA5E80">
+          <End Role="Property" Type="Self.Property" Multiplicity="1" />
+          <End Role="Parameter" Type="Self.Parameter" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Property">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Parameter">
+              <PropertyRef Name="PropertyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestDataS__TestI__6383C8BA">
+          <End Role="Test" Type="Self.Test" Multiplicity="1" />
+          <End Role="TestDataSet" Type="Self.TestDataSet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Test">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestDataSet">
+              <PropertyRef Name="TestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestLabel__TestI__6A30C649">
+          <End Role="Test" Type="Self.Test" Multiplicity="1" />
+          <End Role="TestLabel" Type="Self.TestLabel" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Test">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestLabel">
+              <PropertyRef Name="TestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__TestResul__TestI__6C190EBB">
+          <End Role="Test" Type="Self.Test" Multiplicity="1" />
+          <End Role="TestResult" Type="Self.TestResult" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Test">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TestResult">
+              <PropertyRef Name="TestId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="Entities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Classification" EntityType="Self.Classification" />
+          <EntitySet Name="DataSet" EntityType="Self.DataSet" />
+          <EntitySet Name="Label" EntityType="Self.Label" />
+          <EntitySet Name="Mapping" EntityType="Self.Mapping" />
+          <EntitySet Name="Model" EntityType="Self.Model" />
+          <EntitySet Name="ModelType" EntityType="Self.ModelType" />
+          <EntitySet Name="Parameter" EntityType="Self.Parameter" />
+          <EntitySet Name="Property" EntityType="Self.Property" />
+          <EntitySet Name="Test" EntityType="Self.Test" />
+          <EntitySet Name="TestDataSet" EntityType="Self.TestDataSet" />
+          <EntitySet Name="TestLabel" EntityType="Self.TestLabel" />
+          <EntitySet Name="TestResult" EntityType="Self.TestResult" />
+          <AssociationSet Name="FK__Classific__DataS__73BA3083" Association="Self.FK__Classific__DataS__73BA3083">
+            <End Role="DataSet" EntitySet="DataSet" />
+            <End Role="Classification" EntitySet="Classification" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Classific__Label__72C60C4A" Association="Self.FK__Classific__Label__72C60C4A">
+            <End Role="Label" EntitySet="Label" />
+            <End Role="Classification" EntitySet="Classification" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Classific__TestR__5EBF139D" Association="Self.FK__Classific__TestR__5EBF139D">
+            <End Role="TestResult" EntitySet="TestResult" />
+            <End Role="Classification" EntitySet="Classification" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Mapping__DataSet__619B8048" Association="Self.FK__Mapping__DataSet__619B8048">
+            <End Role="DataSet" EntitySet="DataSet" />
+            <End Role="Mapping" EntitySet="Mapping" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestDataS__DataS__6477ECF3" Association="Self.FK__TestDataS__DataS__6477ECF3">
+            <End Role="DataSet" EntitySet="DataSet" />
+            <End Role="TestDataSet" EntitySet="TestDataSet" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Mapping__LabelId__628FA481" Association="Self.FK__Mapping__LabelId__628FA481">
+            <End Role="Label" EntitySet="Label" />
+            <End Role="Mapping" EntitySet="Mapping" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestLabel__Label__6B24EA82" Association="Self.FK__TestLabel__Label__6B24EA82">
+            <End Role="Label" EntitySet="Label" />
+            <End Role="TestLabel" EntitySet="TestLabel" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Model__ModelType__6383C8BA" Association="Self.FK__Model__ModelType__6383C8BA">
+            <End Role="ModelType" EntitySet="ModelType" />
+            <End Role="Model" EntitySet="Model" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Parameter__Model__6477ECF3" Association="Self.FK__Parameter__Model__6477ECF3">
+            <End Role="Model" EntitySet="Model" />
+            <End Role="Parameter" EntitySet="Parameter" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestResul__Model__6EF57B66" Association="Self.FK__TestResul__Model__6EF57B66">
+            <End Role="Model" EntitySet="Model" />
+            <End Role="TestResult" EntitySet="TestResult" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Property__settin__534D60F1" Association="Self.FK__Property__settin__534D60F1">
+            <End Role="ModelType" EntitySet="ModelType" />
+            <End Role="Property" EntitySet="Property" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Parameter__Prope__59FA5E80" Association="Self.FK__Parameter__Prope__59FA5E80">
+            <End Role="Property" EntitySet="Property" />
+            <End Role="Parameter" EntitySet="Parameter" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestDataS__TestI__6383C8BA" Association="Self.FK__TestDataS__TestI__6383C8BA">
+            <End Role="Test" EntitySet="Test" />
+            <End Role="TestDataSet" EntitySet="TestDataSet" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestLabel__TestI__6A30C649" Association="Self.FK__TestLabel__TestI__6A30C649">
+            <End Role="Test" EntitySet="Test" />
+            <End Role="TestLabel" EntitySet="TestLabel" />
+          </AssociationSet>
+          <AssociationSet Name="FK__TestResul__TestI__6C190EBB" Association="Self.FK__TestResul__TestI__6C190EBB">
+            <End Role="Test" EntitySet="Test" />
+            <End Role="TestResult" EntitySet="TestResult" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="DataHubModelsStoreContainer" CdmEntityContainer="Entities">
+          <EntitySetMapping Name="Classification">
+            <EntityTypeMapping TypeName="DataHub.Models.Classification">
+              <MappingFragment StoreEntitySet="Classification">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="LabelId" ColumnName="LabelId" />
+                <ScalarProperty Name="DataSetId" ColumnName="DataSetId" />
+                <ScalarProperty Name="Confidence" ColumnName="Confidence" />
+                <ScalarProperty Name="TestResulId" ColumnName="TestResulId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DataSet">
+            <EntityTypeMapping TypeName="DataHub.Models.DataSet">
+              <MappingFragment StoreEntitySet="DataSet">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="LocalFileName" ColumnName="LocalFileName" />
+                <ScalarProperty Name="UploadedDate" ColumnName="UploadedDate" />
+                <ScalarProperty Name="MeasuredDate" ColumnName="MeasuredDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Label">
+            <EntityTypeMapping TypeName="DataHub.Models.Label">
+              <MappingFragment StoreEntitySet="Label">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Mapping">
+            <EntityTypeMapping TypeName="DataHub.Models.Mapping">
+              <MappingFragment StoreEntitySet="Mapping">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="DataSetId" ColumnName="DataSetId" />
+                <ScalarProperty Name="LabelId" ColumnName="LabelId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Model">
+            <EntityTypeMapping TypeName="DataHub.Models.Model">
+              <MappingFragment StoreEntitySet="Model">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="ModelTypeId" ColumnName="ModelTypeId" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ModelType">
+            <EntityTypeMapping TypeName="DataHub.Models.ModelType">
+              <MappingFragment StoreEntitySet="ModelType">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Parameter">
+            <EntityTypeMapping TypeName="DataHub.Models.Parameter">
+              <MappingFragment StoreEntitySet="Parameter">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Value" ColumnName="Value" />
+                <ScalarProperty Name="ModelId" ColumnName="ModelId" />
+                <ScalarProperty Name="PropertyId" ColumnName="PropertyId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Property">
+            <EntityTypeMapping TypeName="DataHub.Models.Property">
+              <MappingFragment StoreEntitySet="Property">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="ModelTypeId" ColumnName="ModelTypeId" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Test">
+            <EntityTypeMapping TypeName="DataHub.Models.Test">
+              <MappingFragment StoreEntitySet="Test">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TestDataSet">
+            <EntityTypeMapping TypeName="DataHub.Models.TestDataSet">
+              <MappingFragment StoreEntitySet="TestDataSet">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="TestId" ColumnName="TestId" />
+                <ScalarProperty Name="DataSetId" ColumnName="DataSetId" />
+                <ScalarProperty Name="IsTraningSet" ColumnName="IsTraningSet" />
+                <ScalarProperty Name="IsTestSet" ColumnName="IsTestSet" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TestLabel">
+            <EntityTypeMapping TypeName="DataHub.Models.TestLabel">
+              <MappingFragment StoreEntitySet="TestLabel">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="TestId" ColumnName="TestId" />
+                <ScalarProperty Name="LabelId" ColumnName="LabelId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TestResult">
+            <EntityTypeMapping TypeName="DataHub.Models.TestResult">
+              <MappingFragment StoreEntitySet="TestResult">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="TestId" ColumnName="TestId" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="ModelId" ColumnName="ModelId" />
+                <ScalarProperty Name="ModelFileName" ColumnName="ModelFileName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

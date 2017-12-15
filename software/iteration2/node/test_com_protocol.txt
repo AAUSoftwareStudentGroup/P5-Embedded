@@ -1,0 +1,10 @@
+"<type>#<data>"
+
+device -> pc:
+	"START#": Begin accepting commands
+	"DEBUG#<text>": Debugging prints
+	"COMMAND#SEND_DATAPOINT": Send next datapoint
+	"COMMAND#SEND_RESULT": Send next result
+pc -> device: 
+	"DATAPOINT#<datapointFromCSV>": Next datapoint
+	"RESULT#<resultFromNetwork>": Next result from network
